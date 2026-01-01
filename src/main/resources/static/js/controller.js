@@ -361,7 +361,6 @@ function merge(arr, left, mid, right):
                 lineElement.className = 'code-line';
                 lineElement.dataset.line = lineNumber;
 
-                // 应用语法高亮（这是关键，默认就会高亮）
                 const highlightedLine = this.highlightSyntax(line);
                 lineElement.innerHTML = highlightedLine;
 
@@ -373,8 +372,7 @@ function merge(arr, left, mid, right):
         }
     },
 
-// 添加语法高亮函数
-// 简化的语法高亮函数
+    // 添加语法高亮函数
     highlightSyntax: function (line) {
         // 先转义HTML特殊字符
         let escapedLine = line
@@ -455,7 +453,7 @@ function merge(arr, left, mid, right):
         Utils.logMessage(`已切换到${mode === 'teaching' ? '教学' : '性能'}模式`, 'info');
     },
 
-// 新增：设置性能模式事件监听器
+    // 设置性能模式事件监听器
     setupPerformanceEventListeners: function () {
         // 性能模式标签切换
         document.querySelectorAll('.performance-tab').forEach(tab => {
@@ -469,7 +467,7 @@ function merge(arr, left, mid, right):
         document.getElementById('parse-performance-file').addEventListener('click', this.parsePerformanceFile.bind(this));
     },
 
-// 新增：处理性能模式标签切换
+    // 处理性能模式标签切换
     handlePerformanceTabChange: function (event) {
         const source = event.currentTarget.dataset.source;
 
@@ -486,7 +484,7 @@ function merge(arr, left, mid, right):
         document.getElementById(`performance-${source}-panel`).classList.add('active');
     },
 
-// 新增：处理性能模式文件选择
+    // 处理性能模式文件选择
     handlePerformanceFileSelect: function (event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -508,7 +506,7 @@ function merge(arr, left, mid, right):
         document.getElementById('parse-performance-file').disabled = false;
     },
 
-// 新增：解析性能测试文件
+    // 解析性能测试文件
     parsePerformanceFile: function () {
         const fileInput = document.getElementById('performance-file-input');
         const file = fileInput.files[0];
@@ -580,11 +578,6 @@ function merge(arr, left, mid, right):
 
         // 显示速度值
         speedValue.textContent = (value / 1000).toFixed(1) + 's';
-
-        // 如果正在排序，更新间隔
-        if (this.isSorting) {
-            this.updateSortInterval(value);
-        }
     },
 
     // 开始排序
@@ -689,13 +682,6 @@ function merge(arr, left, mid, right):
 
     // 处理步骤更新
     handleStepUpdate: function (data) {
-        console.log("Step Update Received:", {
-            step: data.step,
-            totalSteps: data.totalSteps,
-            highlight: data.highlight,
-            description: data.description
-        });
-
         if (!this.isSorting) return;
 
         this.currentStep = data.step || 0;
@@ -814,16 +800,6 @@ function merge(arr, left, mid, right):
         Visualizer.update(this.currentData, sortedHighlight);
     },
 
-    // 更新排序间隔
-    updateSortInterval: function (interval) {
-        if (this.sortInterval) {
-            clearInterval(this.sortInterval);
-        }
-
-        // 注意：实际步进由服务器控制，这里只是为了演示
-        // 实际应用中，服务器会按间隔发送步骤更新
-    },
-
     // 更新统计显示
     updateStatsDisplay: function () {
         document.getElementById('comparisons-count').textContent = this.stats.comparisons;
@@ -869,7 +845,7 @@ function merge(arr, left, mid, right):
         this.runPerformanceTestWithData(testData, distribution);
     },
 
-// 新增：使用指定数据运行性能测试
+    // 使用指定数据运行性能测试
     runPerformanceTestWithData: function (testData, distribution = 'custom') {
         if (!WebSocketManager.isConnected) {
             Utils.showError('请先连接到服务器');
@@ -932,6 +908,7 @@ function merge(arr, left, mid, right):
             }
         }, 300); // 300ms 延迟，确保服务器有足够时间处理
     },
+
     // 处理数据生成
     handleGenerateData: function () {
         const size = parseInt(document.getElementById('data-size').value);
