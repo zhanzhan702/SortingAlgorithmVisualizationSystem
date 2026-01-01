@@ -1,0 +1,3 @@
+# SortingAlgorithmVisualizationSystem
+
+一个支持教学演示和性能测试的排序算法可视化系统，通过WebSocket实现前后端实时通信，直观展示多种排序算法的执行过程和性能对比
