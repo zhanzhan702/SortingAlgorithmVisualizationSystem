@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>排序算法可视化系统</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <!-- 顶部标题 -->
+    <header class="header">
+        <h1><i class="fas fa-sort-amount-down"></i> 排序算法可视化系统</h1>
+        <p class="subtitle">可视化演示多种排序算法的执行过程与性能对比</p>
+    </header>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 左侧控制面板 -->
+        <div class="control-panel">
+            <!-- 模式选择 -->
+            <section class="control-section">
+                <h3><i class="fas fa-cogs"></i> 模式选择</h3>
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="teaching" id="mode-teaching">
+                        <i class="fas fa-chalkboard-teacher"></i> 教学模式
+                    </button>
+                    <button class="mode-btn" data-mode="performance" id="mode-performance">
+                        <i class="fas fa-tachometer-alt"></i> 性能模式
+                    </button>
+                </div>
+            </section>
+
+            <!-- 算法选择 -->
+            <section class="control-section">
+                <h3><i class="fas fa-code"></i> 排序算法</h3>
+                <div class="algorithm-selector" id="algorithm-selector">
+                    <!-- 算法按钮将通过JS动态生成 -->
+                </div>
+            </section>
+
+            <!-- 数据输入 -->
+            <section class="control-section">
+                <h3><i class="fas fa-database"></i> 数据输入</h3>
+                <div class="input-methods">
+                    <div class="method-tabs">
+                        <button class="method-tab active" data-method="generate">生成数据</button>
+                        <button class="method-tab" data-method="file">上传文件</button>
+                        <button class="method-tab" data-method="manual">手动输入</button>
+                    </div>
+
+                    <!-- 数据生成器 -->
+                    <div class="method-panel active" id="generate-panel">
+                        <div class="form-group">
+                            <label>数据规模</label>
+                            <input id="data-size" max="100" min="5" type="range" value="20">
+                            <span id="size-value">20</span>
+                        </div>
+                        <div class="form-group">
+                            <label>数据类型</label>
+                            <select id="data-type">
+                                <option value="int">整数</option>
+                                <option value="double">浮点数</option>
+                                <option value="Person">Person结构体</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>数据分布</label>
+                            <select id="data-distribution">
+                                <option value="random">完全随机</option>
+                                <option value="sorted">基本有序</option>
+                                <option value="reverse">完全逆序</option>
+                                <option value="duplicate">大量重复</option>
+                                <option value="normal">正态分布</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>数值范围（不会生成负数）</label>
+                            <div class="range-inputs">
+                                <input id="min-value" max="1000" min="0" type="number" value="10">
+                                <span>到</span>
+                                <input id="max-value" max="1000" min="1" type="number" value="100">
+                            </div>
+                        </div>
+                        <button class="btn primary-btn" id="generate-data">
+                            <i class="fas fa-bolt"></i> 生成数据
+                        </button>
+                    </div>
+
+                    <!-- 文件上传 -->
+                    <div class="method-panel" id="file-panel">
+                        <div class="form-group">
+                            <label>选择文件</label>
+                            <input accept=".txt" id="file-input" type="file">
+                            <div class="file-info" id="file-info"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>文件格式说明</label>
+                            <div class="format-hint">
+                                <p>第一行: 数据个数 (≤100)</p>
+                                <p>第二行: 数据类型 (int/double/结构体名)</p>
+                                <p>第三行起: 每个数据占一行</p>
+                            </div>
+                        </div>
+                        <button class="btn primary-btn" disabled id="parse-file">
+                            <i class="fas fa-upload"></i> 解析文件
+                        </button>
+                    </div>
+
+                    <!-- 手动输入 -->
+                    <div class="method-panel" id="manual-panel">
+                        <div class="form-group">
+                            <label>输入数据</label>
+                            <textarea id="manual-data"
+                                      placeholder="每行一个数据，例如:&#10;45&#10;12&#10;78&#10;23&#10;56"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>数据类型</label>
+                            <select id="manual-type">
+                                <option value="int">整数</option>
+                                <option value="double">浮点数</option>
+                            </select>
+                        </div>
+                        <button class="btn primary-btn" id="parse-manual">
+                            <i class="fas fa-keyboard"></i> 确认输入
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 排序选项 -->
+            <section class="control-section">
+                <h3><i class="fas fa-sort"></i> 排序选项</h3> <!-- 修复图标 -->
+                <div class="form-group">
+                    <label>排序方向</label>
+                    <div class="sort-direction">
+                        <label class="radio-label">
+                            <input checked name="sort-direction" type="radio" value="ascending">
+                            <span>升序 (从小到大)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input name="sort-direction" type="radio" value="descending">
+                            <span>降序 (从大到小)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>比较方法</label>
+                    <select id="comparison-method">
+                        <option value="numeric">数值比较</option>
+                        <option value="absolute">绝对值比较</option>
+                        <option value="reverse">反向比较</option>
+                        <option value="custom">自定义比较</option>
+                    </select>
+                </div>
+
+                <!-- 自定义比较函数输入 -->
+                <div class="form-group" id="custom-comparison-container" style="display: none;">
+                    <label>自定义比较函数</label>
+                    <textarea id="custom-comparison-function" placeholder="输入JavaScript比较函数，例如：
+// a和b是要比较的两个元素
+// 返回true表示a应该排在b前面
+function compare(a, b) {
+    return a < b;  // 升序
+}" rows="4"></textarea>
+                    <button class="btn secondary-btn" id="validate-comparison">
+                        <i class="fas fa-check"></i> 验证函数
+                    </button>
+                </div>
+
+                <!-- 结构体字段选择器 -->
+                <div class="form-group" id="struct-field-container" style="display: none;">
+                    <label>Person结构体排序字段</label>
+                    <select class="struct-field-selector" id="struct-field">
+                        <option value="score">分数 (score)</option>
+                        <option value="age">年龄 (age)</option>
+                        <option value="id">ID (id)</option>
+                        <option value="name">姓名 (name)</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- 控制按钮 -->
+            <section class="control-section">
+                <h3><i class="fas fa-play-circle"></i> 控制</h3>
+                <div class="control-buttons">
+                    <button class="btn success-btn" id="start-sort">
+                        <i class="fas fa-play"></i> 开始排序
+                    </button>
+                    <button class="btn danger-btn" id="reset-sort">
+                        <i class="fas fa-redo"></i> 重置
+                    </button>
+                </div>
+                <div class="speed-control">
+                    <label>动画速度</label>
+                    <input id="speed-control" max="2000" min="100" step="100" type="range" value="1000">
+                    <span id="speed-value">1.0s</span>
+                </div>
+            </section>
+
+            <!-- 连接状态 -->
+            <section class="control-section">
+                <h3><i class="fas fa-network-wired"></i> 连接状态</h3>
+                <div class="connection-status">
+                    <div class="status-indicator" id="status-indicator">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">未连接</span>
+                    </div>
+                    <button class="btn secondary-btn" id="connect-btn">
+                        <i class="fas fa-plug"></i> 连接服务器
+                    </button>
+                </div>
+                <div class="server-url">
+                    <label>服务器地址</label>
+                    <input id="server-url" type="text" value="ws://localhost:8080/websocket">
+                </div>
+            </section>
+
+            <!-- 统计信息 -->
+            <section class="control-section" id="stats-section">
+                <h3><i class="fas fa-chart-line"></i> 统计信息</h3>
+                <div class="stats-display">
+                    <div class="stat-item">
+                        <span class="stat-label">比较次数:</span>
+                        <span class="stat-value" id="comparisons-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">交换次数:</span>
+                        <span class="stat-value" id="swaps-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">运行时间:</span>
+                        <span class="stat-value" id="time-count">0ms</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">当前步骤:</span>
+                        <span class="stat-value" id="current-step">0/0</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 中间可视化区 -->
+        <div class="visualization-area">
+            <!-- 教学模式内容 -->
+            <div class="main-visualization" id="teaching-visualization">
+                <div class="visualization-header">
+                    <h3 id="vis-title">排序过程可视化</h3>
+                    <div class="color-legend">
+                        <div class="legend-item">
+                            <span class="legend-color normal"></span>
+                            <span>正常</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color comparing"></span>
+                            <span>比较中</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color swapping"></span>
+                            <span>交换中</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color heaping"></span>
+                            <span>建堆中</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color sorted"></span>
+                            <span>已排序</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visualization-container">
+                    <svg height="100%" id="sort-visualization" width="100%"></svg>
+                    <div class="no-data-message" id="no-data-message">
+                        <i class="fas fa-chart-bar fa-3x"></i>
+                        <p>请先生成或上传数据</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 性能模式内容 -->
+            <div class="main-visualization" id="performance-visualization" style="display: none;">
+                <div class="visualization-header">
+                    <h3><i class="fas fa-tachometer-alt"></i> 性能对比测试</h3>
+                </div>
+                <div class="performance-container">
+                    <!-- 性能图表区域 -->
+                    <div class="performance-chart-section">
+                        <!-- <div class="chart-container" style="height: 300px;">
+                            <canvas id="performance-chart"></canvas>
+                        </div> -->
+
+                        <!-- 性能表格区域 -->
+                        <div class="performance-table-container" id="performance-table-container">
+                            <!-- 表格将通过JS动态生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 性能测试控制区域 -->
+                    <div class="performance-controls">
+                        <!-- 数据来源选择标签 -->
+                        <div class="performance-tabs">
+                            <button class="performance-tab active" data-source="generate">生成数据</button>
+                            <button class="performance-tab" data-source="file">导入文件</button>
+                        </div>
+
+                        <!-- 生成数据面板 -->
+                        <div class="performance-panel active" id="performance-generate-panel">
+                            <div class="performance-form">
+                                <div class="form-group">
+                                    <label class="form-label" for="test-size">测试数据规模</label>
+                                    <select class="form-select" id="test-size">
+                                        <option value="100">100个数据</option>
+                                        <option value="500">500个数据</option>
+                                        <option value="1000">1000个数据</option>
+                                        <option value="5000">5000个数据</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="test-distribution">数据分布</label>
+                                    <select class="form-select" id="test-distribution">
+                                        <option value="random">随机数据</option>
+                                        <option value="sorted">有序数据</option>
+                                        <option value="reverse">逆序数据</option>
+                                        <option value="duplicate">重复数据</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn primary-btn full-width-btn" id="run-performance-test">
+                                        <i class="fas fa-rocket"></i> 运行性能测试
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 文件导入面板 -->
+                        <div class="performance-panel" id="performance-file-panel">
+                            <div class="performance-form">
+                                <div class="form-group">
+                                    <label class="form-label" for="performance-file-input">选择测试数据文件</label>
+                                    <input accept=".txt" class="file-input" id="performance-file-input" type="file">
+                                    <div class="file-info compact" id="performance-file-info">
+                                        <p class="file-hint">请选择.txt文件（≤1MB）</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="format-info">
+                                        <details>
+                                            <summary>文件格式说明</summary>
+                                            <div class="format-details">
+                                                <p>• 纯文本，每行一个数字</p>
+                                                <p>• 支持整数和浮点数</p>
+                                                <p>• 文件大小：≤1MB</p>
+                                                <p>• 示例格式：</p>
+                                                <pre>45
+23
+78
+12</pre>
+                                            </div>
+                                        </details>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn primary-btn full-width-btn" disabled id="parse-performance-file">
+                                        <i class="fas fa-upload"></i> 导入并测试
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧信息面板 -->
+        <div class="info-panel">
+            <!-- 伪代码展示 -->
+            <section class="info-section">
+                <h3><i class="fas fa-code"></i> 算法伪代码</h3>
+                <div class="pseudo-code-container">
+                    <pre id="pseudo-code"></pre>
+                </div>
+            </section>
+
+            <!-- 算法信息 -->
+            <section class="info-section">
+                <h3><i class="fas fa-info-circle"></i> 算法信息</h3>
+                <div class="algorithm-info" id="algorithm-info">
+                    <p>请选择一种排序算法查看详细信息</p>
+                </div>
+            </section>
+
+            <!-- 系统日志 -->
+            <section class="info-section">
+                <h3><i class="fas fa-terminal"></i> 系统日志</h3>
+                <div class="log-container">
+                    <div id="log-messages"></div>
+                </div>
+                <div class="log-controls">
+                    <button class="btn secondary-btn" id="clear-log">
+                        <i class="fas fa-trash"></i> 清空日志
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- 底部状态栏 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>注意：可视化最多支持100个数据元素</span>
+            </div>
+            <div class="footer-item">
+                <i class="fas fa-cog"></i>
+                <span>教学模式：展示排序过程 | 性能模式：对比算法效率</span>
+            </div>
+            <div class="footer-item">
+                <i class="fas fa-code"></i>
+                <span>后端：Spring Boot + WebSocket | 前端：纯JavaScript + SVG</span>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- 模态对话框 -->
+<div class="modal" id="error-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-circle"></i> 错误提示</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="error-message"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn primary-btn" id="confirm-error">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 加载指示器 -->
+<div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin fa-3x"></i>
+        <p id="loading-message">正在处理...</p>
+    </div>
+</div>
+
+<!-- 引入JavaScript文件 -->
+<script src="js/utils.js"></script>
+<script src="js/websocket.js"></script>
+<script src="js/visualizer.js"></script>
+<script src="js/controller.js"></script>
+<script src="js/dataGenerator.js"></script>
+<script src="js/fileParser.js"></script>
+<script src="js/pseudoCode.js"></script>
+<script src="js/chartRenderer.js"></script>
+<script src="js/main.js"></script>
+<script src="js/comparisonManager.js"></script>
+</body>
+</html>
