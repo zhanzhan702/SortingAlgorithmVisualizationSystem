@@ -547,10 +547,6 @@ body {
     word-wrap: break-word;
 }
 
-.pseudo-line {
-    padding: 2px 0;
-}
-
 /* 性能图表 */
 .chart-container {
     height: 200px;
@@ -901,26 +897,6 @@ body {
     font-weight: bold;
 }
 
-.pseudo-line:hover {
-    background-color: #3a4556;
-}
-
-/* 行号样式 */
-.pseudo-line::before {
-    content: attr(data-line-number);
-    display: inline-block;
-    width: 30px;
-    margin-right: 10px;
-    color: #718096;
-    text-align: right;
-    user-select: none;
-}
-
-.pseudo-line.active::before {
-    color: #a0aec0;
-    font-weight: bold;
-}
-
 /* 高亮颜色 */
 .highlight-compare {
     background-color: #fed7d7 !important;
@@ -1067,20 +1043,6 @@ body {
     flex-direction: column;
     min-height: 300px;
     max-height: 400px;
-}
-
-/* 图表容器优化 */
-.chart-container {
-    flex: 1;
-    min-height: 200px;
-    max-height: 300px;
-    position: relative;
-}
-
-/* 图表容器优化 */
-#performance-chart {
-    width: 100% !important;
-    height: 100% !important;
 }
 
 /* 性能表格容器 */
