@@ -10,7 +10,8 @@ const Visualizer = {
         comparing: '#e74c3c',
         swapping: '#27ae60',
         sorted: '#9b59b6',
-        heap: '#f39c12'
+        heap: '#f39c12',
+        pivot: '#1abc9c'
     },
     isInitialized: false,
 
@@ -59,13 +60,13 @@ const Visualizer = {
 
         document.getElementById('no-data-message').style.display = 'none';
 
-        // ✅ 修复：更准确的Person结构体判断
+        // Person结构体判断
         const isPersonData = data.length > 0 &&
             typeof data[0] === 'object' &&
             data[0] !== null &&
             ('id' in data[0] || 'name' in data[0] || 'score' in data[0] || 'age' in data[0]);
 
-        // ✅ 修复：如果highlight中没有sorted，就不要显示已排序颜色
+        // highlight中没有sorted，就不要显示已排序颜色
         // 只有当highlight.sorted存在时才使用它
         const sortedIndices = highlight.sorted || [];
 
@@ -98,7 +99,7 @@ const Visualizer = {
             const x = this.margin.left + index * (barWidth + 2);
             const y = this.height - this.margin.bottom - barHeight;
 
-            // ✅ 修复：正确的颜色优先级
+            // 正确的颜色优先级
             // 1. 先检查当前元素是否是sorted
             const isSorted = sortedIndices.includes(index);
 
@@ -117,7 +118,7 @@ const Visualizer = {
                 color = this.colors.heap;
                 highlightClass = 'highlight-heap';
             } else if (highlight.pivot && highlight.pivot.includes(index)) {
-                color = '#1abc9c'; // 基准元素特殊颜色
+                color = this.colors.pivot;
                 highlightClass = 'highlight-pivot';
             } else if (sortedIndices.includes(index)) {
                 color = this.colors.sorted;

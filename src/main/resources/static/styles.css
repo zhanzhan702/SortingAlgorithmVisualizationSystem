@@ -349,6 +349,11 @@ body {
     animation: pulse 1.5s infinite;
 }
 
+.status-text {
+    white-space: nowrap;
+    padding-right: 8px;
+}
+
 @keyframes pulse {
     0% {
         opacity: 1;
@@ -362,6 +367,7 @@ body {
 }
 
 .server-url input {
+    width: 100%;
     font-size: 0.85rem;
     padding: 8px;
 }
@@ -455,7 +461,11 @@ body {
     background-color: #27ae60;
 }
 
-.legend-color.heaping {
+.legend-color.pivot {
+    background-color: #1abc9c;
+}
+
+.legend-color.heap {
     background-color: #f39c12;
 }
 
