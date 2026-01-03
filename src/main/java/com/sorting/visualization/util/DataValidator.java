@@ -17,7 +17,7 @@ public class DataValidator {
     @Value("${sorting.max-teaching-size:100}")
     private int maxTeachingSize;
 
-    @Value("${sorting.max-performance-size:10000}")
+    @Value("${sorting.max-performance-size:20000}")
     private int maxPerformanceSize;
 
     @Value("${person.age.min:0}")

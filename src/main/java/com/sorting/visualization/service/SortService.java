@@ -55,16 +55,12 @@ public class SortService {
 
     private String getComplexity(String algorithm) {
         switch (algorithm.toUpperCase()) {
-            case "BUBBLE":
-            case "INSERTION":
+            case "BUBBLE", "INSERTION":
                 return "O(n²)";
-            case "SHELL":
+            case "SHELL", "HEAP", "MERGE":
                 return "O(n log n)";
             case "QUICK":
                 return "O(n log n) - O(n²)";
-            case "HEAP":
-            case "MERGE":
-                return "O(n log n)";
             default:
                 return "未知";
         }
