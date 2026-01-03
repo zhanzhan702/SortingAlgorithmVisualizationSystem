@@ -425,11 +425,6 @@ body {
     border-bottom: 1px solid #eaeaea;
 }
 
-.visualization-header h3 {
-    font-size: 1.1rem;
-    color: #2c3e50;
-}
-
 .color-legend {
     display: flex;
     gap: 15px;
@@ -1044,7 +1039,8 @@ body {
     height: calc(100% - 60px);
     padding: 15px;
     gap: 15px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .performance-chart-section {
@@ -1109,7 +1105,7 @@ body {
     flex: 1;
     background: #f8f9fa;
     border-radius: 12px;
-    padding: 15px 15px 40px;
+    padding: 15px;
     border: 1px solid #eaeaea;
     min-height: 300px;
     max-height: 350px;
@@ -1336,7 +1332,7 @@ body {
     }
 
     .performance-chart-section {
-        min-height: 300px;
+        min-height: 200px;
     }
 }
 
