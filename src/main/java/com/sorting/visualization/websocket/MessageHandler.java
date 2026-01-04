@@ -53,20 +53,25 @@ public class MessageHandler {
             // 解析消息类型
             Map<String, Object> messageMap = JsonUtil.fromJson(message, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
             });
-            String type = (String) messageMap.get("type");
+            String type = null;
+            if (messageMap != null) {
+                type = (String) messageMap.get("type");
+            }
 
-            switch (type) {
-                case "SORT_REQUEST":
-                    handleSortRequest(sessionId, session, message);
-                    break;
+            if (type != null) {
+                switch (type) {
+                    case "SORT_REQUEST":
+                        handleSortRequest(sessionId, session, message);
+                        break;
 
-                case "CONTROL":
-                    handleControlRequest(sessionId, session, message);
-                    break;
+                    case "CONTROL":
+                        handleControlRequest(sessionId, session, message);
+                        break;
 
-                default:
-                    log.warn("未知消息类型: {}", type);
-                    sendError(sessionId, "UNKNOWN_MESSAGE_TYPE", "未知消息类型: " + type, null);
+                    default:
+                        log.warn("未知消息类型: {}", type);
+                        sendError(sessionId, "UNKNOWN_MESSAGE_TYPE", "未知消息类型: " + type, null);
+                }
             }
         } catch (Exception e) {
             log.error("处理消息失败: sessionId={}, message={}, error={}",

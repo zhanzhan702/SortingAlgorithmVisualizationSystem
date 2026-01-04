@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Controller.updatePseudoCode();
 
-    // 初始连接（可选）
-    // WebSocketManager.init('ws://localhost:8080/websocket');
+    WebSocketManager.init("ws://localhost:8080/websocket");
 
     // 显示初始比较器信息
     Utils.logMessage(`当前比较器: ${ComparisonManager.getComparatorDescription()}`, 'info');
