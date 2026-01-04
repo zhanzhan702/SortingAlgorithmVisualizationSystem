@@ -124,7 +124,7 @@ const WebSocketManager = {
         }
 
         // 尝试重新连接
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        if (!this.isConnected && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             const delay = this.reconnectDelay * this.reconnectAttempts;
 
