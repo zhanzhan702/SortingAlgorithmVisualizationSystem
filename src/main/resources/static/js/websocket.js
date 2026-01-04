@@ -83,6 +83,14 @@ const WebSocketManager = {
                     }
                     break;
 
+                case 'SORT_COMPLETE':
+                    Utils.logMessage('本次排序结束', 'success');
+                    break;
+
+                case 'CONNECTED':
+                    Utils.logMessage('已成功连接至服务器', 'success');
+                    break;
+
                 case 'PERFORMANCE_RESULT':
                     if (this.callbacks.onPerformanceResult) {
                         this.callbacks.onPerformanceResult(data);
