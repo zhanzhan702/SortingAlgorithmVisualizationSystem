@@ -628,7 +628,7 @@ function merge(arr, left, mid, right):
             algorithm: this.currentAlgorithm.toUpperCase(),
             data: this.currentData,
             interval: parseInt(speed),
-            dataType: dataType.toUpperCase(),
+            dataType: dataType.toUpperCase() ? dataType.toUpperCase() : "PERSON",
             distribution: 'RANDOM',
             ascending: ComparisonManager.currentDirection === 'ascending',
             comparatorInfo: comparatorInfo
