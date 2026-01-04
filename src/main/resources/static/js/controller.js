@@ -628,7 +628,7 @@ function merge(arr, left, mid, right):
             algorithm: this.currentAlgorithm.toUpperCase(),
             data: this.currentData,
             interval: parseInt(speed),
-            dataType: dataType.toUpperCase(),
+            dataType: this.currentDataType || 'PERSON',
             distribution: 'RANDOM',
             ascending: ComparisonManager.currentDirection === 'ascending',
             comparatorInfo: comparatorInfo
@@ -993,6 +993,8 @@ function merge(arr, left, mid, right):
                 }
 
                 this.currentData = result.data;
+
+                this.currentDataType = result.dataType ? result.dataType.toUpperCase() : 'PERSON';
 
                 // 更新数据类型选择
                 document.getElementById('data-type').value = result.dataType;
