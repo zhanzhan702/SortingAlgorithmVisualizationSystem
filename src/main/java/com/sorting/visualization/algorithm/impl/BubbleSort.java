@@ -17,9 +17,9 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
 
         List<T> workingData = new ArrayList<>(data);
         int n = workingData.size();
-        int totalSteps = n * (n - 1) / 2; // 估算总步数
 
         for (int i = 0; i < n - 1; i++) {
+            boolean changed = false;
             Highlight highlight = new Highlight();
             List<Integer> sorted = new ArrayList<>();
 
@@ -38,6 +38,7 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
 
                 recordComparison();
                 if (compare(comparator, workingData.get(j), workingData.get(j + 1)) > 0) {
+                    changed = true;
                     swap(workingData, j, j + 1);
 
                     highlight = new Highlight();
@@ -63,6 +64,10 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
 
             addStep(workingData, highlight,
                     String.format("第%d轮排序完成，第%d个元素已就位", i + 1, n - i));
+
+            if (!changed) {
+                break;
+            }
         }
 
         return completeTeaching(workingData, steps.size() + 1);
@@ -77,11 +82,16 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
         startTime = System.currentTimeMillis();
 
         for (int i = 0; i < n - 1; i++) {
+            boolean changed = false;
             for (int j = 0; j < n - i - 1; j++) {
                 comparisons++;
                 if (comparator.compare(workingData.get(j), workingData.get(j + 1)) > 0) {
+                    changed = true;
                     swap(workingData, j, j + 1);
                 }
+            }
+            if (!changed) {
+                break;
             }
         }
 
