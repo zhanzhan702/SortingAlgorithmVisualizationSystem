@@ -79,7 +79,7 @@ public abstract class AbstractSortingAlgorithm<T> implements SortingAlgorithm<T>
         T temp = list.get(i);
         list.set(i, list.get(j));
         list.set(j, temp);
-        swaps++;
+        recordSwap();
     }
 
     /**

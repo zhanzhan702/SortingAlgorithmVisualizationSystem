@@ -19,7 +19,7 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
         int n = workingData.size();
 
         // 添加初始步骤
-        Highlight highlight = new Highlight();
+        Highlight highlight;
 
 
         for (int i = 1; i < n; i++) {

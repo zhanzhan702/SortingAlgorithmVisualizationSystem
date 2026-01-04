@@ -35,49 +35,31 @@ public class SortService {
     }
 
     private String getChineseName(String algorithm) {
-        switch (algorithm.toUpperCase()) {
-            case "BUBBLE":
-                return "冒泡排序";
-            case "INSERTION":
-                return "直接插入排序";
-            case "SHELL":
-                return "希尔排序";
-            case "QUICK":
-                return "快速排序";
-            case "HEAP":
-                return "堆排序";
-            case "MERGE":
-                return "归并排序";
-            default:
-                return "未知算法";
-        }
+        return switch (algorithm.toUpperCase()) {
+            case "BUBBLE" -> "冒泡排序";
+            case "INSERTION" -> "直接插入排序";
+            case "SHELL" -> "希尔排序";
+            case "QUICK" -> "快速排序";
+            case "HEAP" -> "堆排序";
+            case "MERGE" -> "归并排序";
+            default -> "未知算法";
+        };
     }
 
     private String getComplexity(String algorithm) {
-        switch (algorithm.toUpperCase()) {
-            case "BUBBLE", "INSERTION":
-                return "O(n²)";
-            case "SHELL", "HEAP", "MERGE":
-                return "O(n log n)";
-            case "QUICK":
-                return "O(n log n) - O(n²)";
-            default:
-                return "未知";
-        }
+        return switch (algorithm.toUpperCase()) {
+            case "BUBBLE", "INSERTION" -> "O(n²)";
+            case "SHELL", "HEAP", "MERGE" -> "O(n log n)";
+            case "QUICK" -> "O(n log n) - O(n²)";
+            default -> "未知";
+        };
     }
 
     private String getAlgorithmType(String algorithm) {
-        switch (algorithm.toUpperCase()) {
-            case "BUBBLE":
-            case "INSERTION":
-            case "MERGE":
-                return "stable";
-            case "SHELL":
-            case "QUICK":
-            case "HEAP":
-                return "unstable";
-            default:
-                return "unknown";
-        }
+        return switch (algorithm.toUpperCase()) {
+            case "BUBBLE", "INSERTION", "MERGE" -> "stable";
+            case "SHELL", "QUICK", "HEAP" -> "unstable";
+            default -> "unknown";
+        };
     }
 }

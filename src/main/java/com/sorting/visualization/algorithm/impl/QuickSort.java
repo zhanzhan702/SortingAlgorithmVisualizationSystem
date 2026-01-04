@@ -22,8 +22,6 @@ public class QuickSort<T> extends AbstractSortingAlgorithm<T> {
         Stack<QuickSortRange> stack = new Stack<>();
         stack.push(new QuickSortRange(0, workingData.size() - 1));
 
-        int stepCount = 0;
-
         while (!stack.isEmpty()) {
             QuickSortRange range = stack.pop();
             int low = range.low;

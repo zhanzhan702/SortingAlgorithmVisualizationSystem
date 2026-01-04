@@ -259,16 +259,12 @@ public class DataValidator {
             // 规范化数据类型
             String normalizedType = normalizeDataType(dataType);
 
-            switch (normalizedType) {
-                case "INTEGER":
-                    return (List<T>) convertToIntegerList(rawData);
-                case "DOUBLE":
-                    return (List<T>) convertToDoubleList(rawData);
-                case "PERSON":
-                    return (List<T>) convertToPersonList(rawData);
-                default:
-                    throw new ValidationException("未知数据类型: " + dataType, "INVALID_DATA_TYPE");
-            }
+            return switch (normalizedType) {
+                case "INTEGER" -> (List<T>) convertToIntegerList(rawData);
+                case "DOUBLE" -> (List<T>) convertToDoubleList(rawData);
+                case "PERSON" -> (List<T>) convertToPersonList(rawData);
+                default -> throw new ValidationException("未知数据类型: " + dataType, "INVALID_DATA_TYPE");
+            };
         } catch (Exception e) {
             throw new ValidationException("数据转换失败: " + e.getMessage(), "VALIDATION_ERROR");
         }
