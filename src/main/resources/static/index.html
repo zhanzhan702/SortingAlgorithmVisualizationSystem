@@ -131,7 +131,7 @@
 
             <!-- 排序选项 -->
             <section class="control-section">
-                <h3><i class="fas fa-sort"></i> 排序选项</h3> <!-- 修复图标 -->
+                <h3><i class="fas fa-sort"></i> 排序选项</h3>
                 <div class="form-group">
                     <label>排序方向</label>
                     <div class="sort-direction">
@@ -152,23 +152,11 @@
                         <option value="numeric">数值比较</option>
                         <option value="absolute">绝对值比较</option>
                         <option value="reverse">反向比较</option>
-                        <option value="custom">自定义比较</option>
+                        <!-- 删除自定义比较选项 -->
                     </select>
                 </div>
 
-                <!-- 自定义比较函数输入 -->
-                <div class="form-group" id="custom-comparison-container" style="display: none;">
-                    <label>自定义比较函数</label>
-                    <textarea id="custom-comparison-function" placeholder="输入JavaScript比较函数，例如：
-// a和b是要比较的两个元素
-// 返回true表示a应该排在b前面
-function compare(a, b) {
-    return a < b;  // 升序
-}" rows="4"></textarea>
-                    <button class="btn secondary-btn" id="validate-comparison">
-                        <i class="fas fa-check"></i> 验证函数
-                    </button>
-                </div>
+                <!-- 删除自定义比较函数输入部分 -->
 
                 <!-- 结构体字段选择器 -->
                 <div class="form-group" id="struct-field-container" style="display: none;">

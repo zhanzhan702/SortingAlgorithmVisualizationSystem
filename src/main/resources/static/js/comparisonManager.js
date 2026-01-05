@@ -24,13 +24,7 @@ const ComparisonManager = {
         // 比较方法
         document.getElementById('comparison-method').addEventListener('change', (e) => {
             this.currentMethod = e.target.value;
-            this.toggleCustomComparison(e.target.value === 'custom');
             Utils.logMessage(`比较方法设置为: ${this.getMethodDisplayName()}`, 'info');
-        });
-
-        // 验证自定义函数
-        document.getElementById('validate-comparison').addEventListener('click', () => {
-            this.validateCustomFunction();
         });
 
         // Person结构体字段选择
@@ -41,12 +35,6 @@ const ComparisonManager = {
                 Utils.logMessage(`Person排序字段设置为: ${e.target.value}`, 'info');
             });
         }
-    },
-
-    // 切换自定义比较函数显示
-    toggleCustomComparison: function (show) {
-        const container = document.getElementById('custom-comparison-container');
-        container.style.display = show ? 'block' : 'none';
     },
 
     // 加载默认比较器
@@ -71,49 +59,8 @@ const ComparisonManager = {
         };
     },
 
-    // 验证自定义函数
-    validateCustomFunction: function () {
-        const code = document.getElementById('custom-comparison-function').value;
-
-        if (!code.trim()) {
-            Utils.showError('请输入比较函数代码');
-            return;
-        }
-
-        try {
-            // 尝试创建函数
-            const func = new Function('a', 'b', `
-                ${code}
-                return compare(a, b);
-            `);
-
-            // 测试函数
-            const testResult1 = func(1, 2);
-            const testResult2 = func(2, 1);
-            const testResult3 = func(1, 1);
-
-            if (typeof testResult1 !== 'boolean' ||
-                typeof testResult2 !== 'boolean' ||
-                typeof testResult3 !== 'boolean') {
-                throw new Error('比较函数必须返回布尔值');
-            }
-
-            this.customFunction = func;
-            Utils.logMessage('✅ 自定义比较函数验证成功', 'success');
-
-        } catch (error) {
-            Utils.showError(`函数验证失败: ${error.message}`);
-            this.customFunction = null;
-        }
-    },
-
     // 获取当前比较器
     getComparator: function (dataType) {
-        // 如果是自定义函数，直接返回
-        if (this.currentMethod === 'custom' && this.customFunction) {
-            return this.customFunction;
-        }
-
         // 对于结构体类型，使用特殊的比较器
         if (dataType === 'Person') {
             return this.getPersonComparator();
@@ -153,10 +100,6 @@ const ComparisonManager = {
 
     // 获取比较器描述
     getComparatorDescription: function () {
-        if (this.currentMethod === 'custom') {
-            return '自定义比较函数';
-        }
-
         const directionText = this.currentDirection === 'ascending' ? '升序' : '降序';
         const methodText = this.getMethodDisplayName();
 
@@ -168,8 +111,7 @@ const ComparisonManager = {
         const names = {
             'numeric': '数值比较',
             'absolute': '绝对值比较',
-            'reverse': '反向比较',
-            'custom': '自定义比较'
+            'reverse': '反向比较'
         };
 
         return names[this.currentMethod] || this.currentMethod;
@@ -205,8 +147,6 @@ const ComparisonManager = {
         // 更新UI
         document.querySelector('input[name="sort-direction"][value="ascending"]').checked = true;
         document.getElementById('comparison-method').value = 'numeric';
-        document.getElementById('custom-comparison-container').style.display = 'none';
-        document.getElementById('custom-comparison-function').value = '';
         document.getElementById('struct-field-container').style.display = 'none';
 
         Utils.logMessage('比较器已重置为默认值', 'info');
