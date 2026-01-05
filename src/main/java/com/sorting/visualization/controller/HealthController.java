@@ -44,7 +44,7 @@ public class HealthController {
         result.put("name", "排序算法可视化系统后端");
         result.put("version", "1.0.0");
         result.put("description", "提供排序算法可视化WebSocket服务");
-        result.put("author", "Sorting Visualization Team");
+        result.put("author", "六序天平");
 
         // 技术栈
         Map<String, String> techStack = new HashMap<>();
