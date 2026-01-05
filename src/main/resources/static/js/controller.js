@@ -542,18 +542,17 @@ function merge(arr, left, mid, right):
                     return;
                 }
 
-                // 限制数据量
-                const maxSize = 10000;
-                const finalData = testData.length > maxSize ? testData.slice(0, maxSize) : testData;
-
+                // 限制数据量为1000
+                const maxSize = 1000;
                 if (testData.length > maxSize) {
-                    Utils.logMessage(`数据量过大，已截取前${maxSize}个数据`, 'warning');
+                    Utils.logMessage(`数据量过大(${testData.length})，性能模式最大支持${maxSize}个数据，已自动截取前${maxSize}个`, 'warning');
+                    testData.splice(maxSize); // 截取前1000个
                 }
 
-                Utils.logMessage(`成功导入${finalData.length}个测试数据`, 'success');
+                Utils.logMessage(`成功导入${testData.length}个测试数据`, 'success');
 
                 // 运行性能测试
-                this.runPerformanceTestWithData(finalData);
+                this.runPerformanceTestWithData(testData);
 
             } catch (error) {
                 Utils.showError(`文件解析失败: ${error.message}`);
@@ -830,11 +829,18 @@ function merge(arr, left, mid, right):
         const testSize = document.getElementById('test-size').value;
         const distribution = document.getElementById('test-distribution').value;
 
+        // 验证数据大小
+        const size = parseInt(testSize);
+        if (size > 1000) {
+            Utils.showError(`性能模式最多支持1000个数据，当前选择${size}个`);
+            return;
+        }
+
         Utils.showLoading('正在运行性能测试...');
 
         // 生成测试数据
         const testData = DataGenerator.generateData(
-            parseInt(testSize),
+            size,
             'int',
             distribution,
             1,
