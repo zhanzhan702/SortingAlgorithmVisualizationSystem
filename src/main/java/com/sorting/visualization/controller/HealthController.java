@@ -44,7 +44,8 @@ public class HealthController {
         result.put("name", "排序算法可视化系统后端");
         result.put("version", "1.0.0");
         result.put("description", "提供排序算法可视化WebSocket服务");
-        result.put("author", "六序天平");
+        result.put("author", "zhanzhan702");
+        result.put("Github", "https://github.com/zhanzhan702/SortingAlgorithmVisualizationSystem.git");
 
         // 技术栈
         Map<String, String> techStack = new HashMap<>();
