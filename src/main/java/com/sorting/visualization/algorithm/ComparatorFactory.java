@@ -33,7 +33,7 @@ public class ComparatorFactory {
 
         // Person类型比较器
         if ("PERSON".equalsIgnoreCase(normalizedType)) {
-            return createPersonComparator(ascending, method);
+            return createPersonComparator(ascending, method, comparatorInfo.getStructField());
         }
 
         // 数值类型比较器（Integer, Double）
@@ -56,17 +56,47 @@ public class ComparatorFactory {
     /**
      * 创建Person比较器
      */
-    private static Comparator<Object> createPersonComparator(boolean ascending, String method) {
-        return (a, b) -> {
-            Person p1 = (Person) a;
-            Person p2 = (Person) b;
+    private static Comparator<Object> createPersonComparator(boolean ascending, String method, String structField) {
+        switch (structField) {
+            case "age":
+                return (a, b) -> {
+                    Person p1 = (Person) a;
+                    Person p2 = (Person) b;
 
-            // Person始终按score字段排序
-            double value1 = p1.getScore() != null ? p1.getScore() : 0;
-            double value2 = p2.getScore() != null ? p2.getScore() : 0;
+                    double value1 = p1.getAge() != null ? p1.getAge() : 0;
+                    double value2 = p2.getAge() != null ? p2.getAge() : 0;
 
-            return compareValues(value1, value2, ascending, method);
-        };
+                    return compareValues(value1, value2, ascending, method);
+                };
+            case "id":
+                return (a, b) -> {
+                    Person p1 = (Person) a;
+                    Person p2 = (Person) b;
+                    double value1 = p1.getId();
+                    double value2 = p2.getId();
+                    return compareValues(value1, value2, ascending, method);
+                };
+            case "name":
+                return (a, b) -> {
+                    Person p1 = (Person) a;
+                    Person p2 = (Person) b;
+                    String name1 = p1.getName();
+                    String name2 = p2.getName();
+                    return compareValues(name1, name2, ascending, method);
+                };
+            case "score":
+            default:
+                return (a, b) -> {
+                    Person p1 = (Person) a;
+                    Person p2 = (Person) b;
+
+                    // Person始终按score字段排序
+                    double value1 = p1.getScore() != null ? p1.getScore() : 0;
+                    double value2 = p2.getScore() != null ? p2.getScore() : 0;
+
+                    return compareValues(value1, value2, ascending, method);
+                };
+        }
     }
 
     /**
@@ -108,6 +138,28 @@ public class ComparatorFactory {
             return Double.compare(v1, v2);
         } else {
             return Double.compare(v2, v1);
+        }
+    }
+
+    //对字符串比较进行处理（Person：name）
+    private static int compareValues(String value1, String value2, boolean ascending, String method) {
+        // 根据比较方法处理值
+        switch (method.toLowerCase()) {
+            case "absolute":
+            case "reverse":
+                // 反向比较：交换比较逻辑
+                if (ascending) {
+                    return CharSequence.compare(value2, value1);
+                } else {
+                    return CharSequence.compare(value1, value2);
+                }
+        }
+
+        // 正常比较
+        if (ascending) {
+            return CharSequence.compare(value1, value2);
+        } else {
+            return CharSequence.compare(value2, value1);
         }
     }
 
