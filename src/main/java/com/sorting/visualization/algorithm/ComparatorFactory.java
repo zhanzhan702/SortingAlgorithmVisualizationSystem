@@ -57,46 +57,41 @@ public class ComparatorFactory {
      * 创建Person比较器
      */
     private static Comparator<Object> createPersonComparator(boolean ascending, String method, String structField) {
-        switch (structField) {
-            case "age":
-                return (a, b) -> {
-                    Person p1 = (Person) a;
-                    Person p2 = (Person) b;
+        return switch (structField) {
+            case "age" -> (a, b) -> {
+                Person p1 = (Person) a;
+                Person p2 = (Person) b;
 
-                    double value1 = p1.getAge() != null ? p1.getAge() : 0;
-                    double value2 = p2.getAge() != null ? p2.getAge() : 0;
+                double value1 = p1.getAge() != null ? p1.getAge() : 0;
+                double value2 = p2.getAge() != null ? p2.getAge() : 0;
 
-                    return compareValues(value1, value2, ascending, method);
-                };
-            case "id":
-                return (a, b) -> {
-                    Person p1 = (Person) a;
-                    Person p2 = (Person) b;
-                    double value1 = p1.getId();
-                    double value2 = p2.getId();
-                    return compareValues(value1, value2, ascending, method);
-                };
-            case "name":
-                return (a, b) -> {
-                    Person p1 = (Person) a;
-                    Person p2 = (Person) b;
-                    String name1 = p1.getName();
-                    String name2 = p2.getName();
-                    return compareValues(name1, name2, ascending, method);
-                };
-            case "score":
-            default:
-                return (a, b) -> {
-                    Person p1 = (Person) a;
-                    Person p2 = (Person) b;
+                return compareValues(value1, value2, ascending, method);
+            };
+            case "id" -> (a, b) -> {
+                Person p1 = (Person) a;
+                Person p2 = (Person) b;
+                double value1 = p1.getId();
+                double value2 = p2.getId();
+                return compareValues(value1, value2, ascending, method);
+            };
+            case "name" -> (a, b) -> {
+                Person p1 = (Person) a;
+                Person p2 = (Person) b;
+                String name1 = p1.getName();
+                String name2 = p2.getName();
+                return compareValues(name1, name2, ascending, method);
+            };
+            default -> (a, b) -> {
+                Person p1 = (Person) a;
+                Person p2 = (Person) b;
 
-                    // Person始终按score字段排序
-                    double value1 = p1.getScore() != null ? p1.getScore() : 0;
-                    double value2 = p2.getScore() != null ? p2.getScore() : 0;
+                // Person默认按score字段排序
+                double value1 = p1.getScore() != null ? p1.getScore() : 0;
+                double value2 = p2.getScore() != null ? p2.getScore() : 0;
 
-                    return compareValues(value1, value2, ascending, method);
-                };
-        }
+                return compareValues(value1, value2, ascending, method);
+            };
+        };
     }
 
     /**
