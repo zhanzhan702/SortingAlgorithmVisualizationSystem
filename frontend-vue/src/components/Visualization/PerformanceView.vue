@@ -4,10 +4,11 @@
             <h3><i class="fas fa-tachometer-alt"></i> 性能对比测试</h3>
         </div>
         <div class="performance-container">
-            <!-- 图表与表格 -->
-            <div class="performance-chart-section">
-                <canvas ref="chartCanvas" style="height: 250px; width: 100%;"></canvas>
-                <div class="performance-table-container">
+            <!-- 图表与表格共用滚动区域 -->
+            <div class="performance-chart-section" ref="chartSection">
+                <canvas ref="chartCanvas" class="performance-canvas"></canvas>
+                <div v-if="performanceStore.results.length > 0" class="performance-table-container"
+                    ref="tableContainer">
                     <table class="performance-table">
                         <thead>
                             <tr>
@@ -28,15 +29,19 @@
                     </table>
                 </div>
             </div>
-            <!-- 控制面板 -->
+
+            <!-- 控制面板 （保持不变） -->
             <div class="performance-controls">
                 <div class="performance-tabs">
                     <button :class="['performance-tab', { active: activeTab === 'generate' }]"
-                        @click="activeTab = 'generate'">生成数据</button>
-                    <button :class="['performance-tab', { active: activeTab === 'file' }]"
-                        @click="activeTab = 'file'">导入文件</button>
+                        @click="activeTab = 'generate'">
+                        生成数据
+                    </button>
+                    <button :class="['performance-tab', { active: activeTab === 'file' }]" @click="activeTab = 'file'">
+                        导入文件
+                    </button>
                 </div>
-                <div v-show="activeTab === 'generate'" class="performance-panel active">
+                <div v-show="activeTab === 'generate'" class="performance-panel">
                     <div class="form-group">
                         <label>测试数据规模</label>
                         <select v-model="testSize">
@@ -66,8 +71,9 @@
                             <div>{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
                         </div>
                     </div>
-                    <button class="btn primary-btn" @click="parsePerformanceFile"
-                        :disabled="!selectedFile">导入并测试</button>
+                    <button class="btn primary-btn" @click="parsePerformanceFile" :disabled="!selectedFile">
+                        导入并测试
+                    </button>
                 </div>
             </div>
         </div>
@@ -75,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { usePerformanceStore } from '../../stores/performance'
 import { useWebSocket } from '../../composables/useWebSocket'
 import { useUiStore } from '../../stores/ui'
@@ -93,6 +99,8 @@ const testDistribution = ref('random')
 const selectedFile = ref(null)
 let chart = null
 const chartCanvas = ref(null)
+const chartSection = ref(null)
+const tableContainer = ref(null)
 
 // 更新图表
 function updateChart() {
@@ -106,6 +114,8 @@ function updateChart() {
         data: {
             labels,
             datasets: [{
+                responsive: true,
+                maintainAspectRatio: false,
                 label: '运行时间 (ms)',
                 data: times,
                 backgroundColor: 'rgba(52,152,219,0.7)',
@@ -122,6 +132,27 @@ function updateChart() {
 }
 
 watch(() => performanceStore.results, updateChart, { deep: true })
+
+let currentTableElement = null
+function handleTableWheel(e) {
+    if (!chartSection.value) return
+    if (Math.abs(e.deltaY) > 0) {
+        chartSection.value.scrollTop += e.deltaY
+        e.preventDefault()
+    }
+}
+
+watch(tableContainer, (newEl, oldEl) => {
+    if (oldEl) oldEl.removeEventListener('wheel', handleTableWheel)
+    if (newEl) newEl.addEventListener('wheel', handleTableWheel, { passive: false })
+    currentTableElement = newEl
+})
+
+onUnmounted(() => {
+    if (currentTableElement) {
+        currentTableElement.removeEventListener('wheel', handleTableWheel)
+    }
+})
 
 // 运行测试（生成数据）
 function runTestFromGenerate() {
