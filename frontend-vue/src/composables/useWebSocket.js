@@ -5,16 +5,17 @@ import { useUiStore } from '../stores/ui'
 import { usePerformanceStore } from '../stores/performance'
 import { Utils } from '../utils/helpers'
 
+const socket = ref(null)
+const isConnected = ref(false)
+let messageQueue = []
+let isSending = false
+let silentClose = false
+
 export function useWebSocket() {
-  const socket = ref(null)
-  const isConnected = ref(false)
   const algorithmStore = useAlgorithmStore()
   const dataStore = useDataStore()
   const uiStore = useUiStore()
   const performanceStore = usePerformanceStore()
-
-  let messageQueue = []
-  let isSending = false
 
   const connect = (url) => {
     if (socket.value) {
@@ -38,8 +39,11 @@ export function useWebSocket() {
     }
     socket.value.onclose = () => {
       isConnected.value = false
-      Utils.logMessage('WebSocket 已断开', 'warning')
-      uiStore.showErrorModal('连接已断开')
+      if (!silentClose) {
+        Utils.logMessage('WebSocket 已断开', 'warning')
+        uiStore.showErrorModal('连接已断开')
+      }
+      silentClose = false
     }
   }
 
@@ -106,5 +110,5 @@ export function useWebSocket() {
     return send(msg)
   }
 
-  return { isConnected, socket, connect, sendSortRequest }
+  return { isConnected, socket, connect, sendSortRequest, send }
 }
