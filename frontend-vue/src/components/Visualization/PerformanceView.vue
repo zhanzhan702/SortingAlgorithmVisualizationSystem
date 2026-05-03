@@ -13,7 +13,7 @@
                         <thead>
                             <tr>
                                 <th>算法</th>
-                                <th>时间(ms)</th>
+                                <th>时间(µs)</th>
                                 <th>比较次数</th>
                                 <th>交换次数</th>
                             </tr>
