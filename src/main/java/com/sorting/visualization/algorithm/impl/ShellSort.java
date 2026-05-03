@@ -89,7 +89,7 @@ public class ShellSort<T> extends AbstractSortingAlgorithm<T> {
         int n = workingData.size();
         comparisons = 0;
         swaps = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
 
         // 希尔排序
         for (int gap = n / 2; gap > 0; gap /= 2) {
@@ -111,7 +111,7 @@ public class ShellSort<T> extends AbstractSortingAlgorithm<T> {
             }
         }
 
-        long time = System.currentTimeMillis() - startTime;
+        long time = (System.nanoTime() - startTime)/1000;
 
         PerformanceResult<T> result = new PerformanceResult<>();
         result.setSortedData(workingData);

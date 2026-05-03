@@ -79,7 +79,7 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
         int n = workingData.size();
         comparisons = 0;
         swaps = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
 
         for (int i = 0; i < n - 1; i++) {
             boolean changed = false;
@@ -95,7 +95,7 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
             }
         }
 
-        long time = System.currentTimeMillis() - startTime;
+        long time = (System.nanoTime() - startTime)/1000;
 
         PerformanceResult<T> result = new PerformanceResult<>();
         result.setSortedData(workingData);

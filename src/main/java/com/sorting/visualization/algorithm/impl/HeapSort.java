@@ -118,7 +118,7 @@ public class HeapSort<T> extends AbstractSortingAlgorithm<T> {
         int n = workingData.size();
         comparisons = 0;
         swaps = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
 
         // 构建最大堆
         for (int i = n / 2 - 1; i >= 0; i--) {
@@ -134,7 +134,7 @@ public class HeapSort<T> extends AbstractSortingAlgorithm<T> {
             heapify(workingData, i, 0, comparator);
         }
 
-        long time = System.currentTimeMillis() - startTime;
+        long time = (System.nanoTime() - startTime)/1000;
 
         PerformanceResult<T> result = new PerformanceResult<>();
         result.setSortedData(workingData);

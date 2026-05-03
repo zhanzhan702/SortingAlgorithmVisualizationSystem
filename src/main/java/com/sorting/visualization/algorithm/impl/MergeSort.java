@@ -149,11 +149,11 @@ public class MergeSort<T> extends AbstractSortingAlgorithm<T> {
         List<T> workingData = new ArrayList<>(data);
         comparisons = 0;
         swaps = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
 
         mergeSort(workingData, 0, workingData.size() - 1, comparator, new ArrayList<>());
 
-        long time = System.currentTimeMillis() - startTime;
+        long time = (System.nanoTime() - startTime)/1000;
 
         PerformanceResult<T> result = new PerformanceResult<>();
         result.setSortedData(workingData);

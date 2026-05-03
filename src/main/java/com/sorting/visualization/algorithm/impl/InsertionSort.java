@@ -83,7 +83,7 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
         int n = workingData.size();
         comparisons = 0;
         swaps = 0;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
 
         for (int i = 1; i < n; i++) {
             T key = workingData.get(i);
@@ -102,7 +102,7 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
             workingData.set(j + 1, key);
         }
 
-        long time = System.currentTimeMillis() - startTime;
+        long time = (System.nanoTime() - startTime)/1000;
 
         PerformanceResult<T> result = new PerformanceResult<>();
         result.setSortedData(workingData);
