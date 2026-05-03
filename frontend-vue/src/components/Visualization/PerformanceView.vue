@@ -272,7 +272,7 @@ function sendNext() {
         mode: 'PERFORMANCE',
         algorithm: algo.toUpperCase(),
         data: currentTestData,
-        dataType: 'INT',           // 应改为 'INT'，而不是 'INTEGER'（视后端枚举值而定）
+        dataType: 'INT',
         distribution: currentDistribution.toUpperCase()
     }
     Utils.logMessage(`请求算法: ${algo}`, 'info')

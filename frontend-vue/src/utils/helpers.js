@@ -73,8 +73,6 @@ export const Utils = {
   },
 
   logMessage: function (message, type = 'info') {
-    // 在 Vue 中可以通过 EventBus 或直接调用 store 方法，这里简化为控制台输出
-    // 实际使用时可在 SystemLog 组件中监听自定义事件
     console.log(`[${type.toUpperCase()}]`, message)
     window.dispatchEvent(new CustomEvent('add-log', { detail: { message, type } }))
   },
