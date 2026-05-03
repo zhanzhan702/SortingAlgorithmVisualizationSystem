@@ -39,7 +39,34 @@ export const useAlgorithmStore = defineStore('algorithm', {
         heap: `function heapSort(arr):\n    buildMaxHeap(arr)\n    for i = n-1 downto 1:\n        swap(arr[0], arr[i])\n        heapSize = heapSize-1\n        heapify(arr, 0, heapSize)\n\nfunction buildMaxHeap(arr):\n    heapSize = n\n    for i = floor(n/2) downto 0:\n        heapify(arr, i, heapSize)\n\nfunction heapify(arr, i, heapSize):\n    largest = i\n    left = 2*i+1\n    right = 2*i+2\n    if left < heapSize and arr[left] > arr[largest]:\n        largest = left\n    if right < heapSize and arr[right] > arr[largest]:\n        largest = right\n    if largest != i:\n        swap(arr[i], arr[largest])\n        heapify(arr, largest, heapSize)`,
         merge: `function mergeSort(arr, left, right):\n    if left < right:\n        mid = floor((left+right)/2)\n        mergeSort(arr, left, mid)\n        mergeSort(arr, mid+1, right)\n        merge(arr, left, mid, right)\n\nfunction merge(arr, left, mid, right):\n    n1 = mid-left+1\n    n2 = right-mid\n    create L[0..n1] and R[0..n2]\n    for i=0 to n1-1:\n        L[i] = arr[left+i]\n    for j=0 to n2-1:\n        R[j] = arr[mid+1+j]\n    i=0, j=0, k=left\n    while i<n1 and j<n2:\n        if L[i] <= R[j]:\n            arr[k] = L[i]\n            i = i+1\n        else:\n            arr[k] = R[j]\n            j = j+1\n        k = k+1\n    while i < n1:\n        arr[k] = L[i]\n        i = i+1\n        k = k+1\n    while j < n2:\n        arr[k] = R[j]\n        j = j+1\n        k = k+1`,
       }
-      this.pseudocode = codes[this.currentAlgorithm] || ''
+      const rawCode = codes[this.currentAlgorithm] || ''
+
+      this.pseudocode = this.highlightSyntax(rawCode)
+    },
+    // 添加语法高亮方法
+    highlightSyntax(text) {
+      // 转义 HTML 特殊字符
+      let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // 关键字
+      escaped = escaped.replace(
+        /\b(function|for|while|if|else|return|downto|to|and|create)\b/gi,
+        '<span class="code-keyword">$&</span>',
+      )
+      // 函数名
+      escaped = escaped.replace(
+        /\b(insertionSort|shellSort|bubbleSort|quickSort|heapSort|mergeSort|partition|buildMaxHeap|heapify|merge|swap|floor|length)\b/gi,
+        '<span class="code-function">$&</span>',
+      )
+      // 变量名
+      escaped = escaped.replace(
+        /\b(arr|key|j|i|n|gap|temp|low|high|pivot|pi|heapSize|largest|left|right|mid|L|R|k|n1|n2)\b/gi,
+        '<span class="code-variable">$&</span>',
+      )
+      // 数字
+      escaped = escaped.replace(/\b\d+\b/g, '<span class="code-number">$&</span>')
+      // 保留换行
+      escaped = escaped.replace(/\n/g, '<br>')
+      return escaped
     },
   },
 })
