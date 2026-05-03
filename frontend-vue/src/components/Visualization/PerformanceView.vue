@@ -83,7 +83,7 @@ import DataGenerator from '../../utils/dataGenerator'
 import Chart from 'chart.js/auto'
 
 const performanceStore = usePerformanceStore()
-const { sendSortRequest, isConnected, socket } = useWebSocket()
+const { sendSortRequest, isConnected } = useWebSocket()
 const uiStore = useUiStore()
 
 const activeTab = ref('generate')
@@ -209,7 +209,7 @@ function runAllAlgorithms(testData, distribution) {
 }
 
 function sendNext() {
-    if (!isConnected.value || socket.value?.readyState !== WebSocket.OPEN) {
+    if (!isConnected.value) {
         uiStore.showErrorModal('连接已断开')
         uiStore.hideLoading()
         isRunning = false
