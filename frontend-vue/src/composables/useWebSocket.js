@@ -5,12 +5,9 @@ import { useUiStore } from '../stores/ui'
 import { usePerformanceStore } from '../stores/performance'
 import { Utils } from '../utils/helpers'
 
-const socket = ref(null)
-const isConnected = ref(false)
-let messageQueue = []
-let isSending = false
-
 export function useWebSocket() {
+  const socket = ref(null)
+  const isConnected = ref(false)
   const algorithmStore = useAlgorithmStore()
   const dataStore = useDataStore()
   const uiStore = useUiStore()
@@ -109,5 +106,5 @@ export function useWebSocket() {
     return send(msg)
   }
 
-  return { isConnected, connect, sendSortRequest }
+  return { isConnected, socket, connect, sendSortRequest }
 }
