@@ -116,7 +116,7 @@ function updateChart() {
             datasets: [{
                 responsive: true,
                 maintainAspectRatio: false,
-                label: '运行时间 (ms)',
+                label: '运行时间 (µs)',
                 data: times,
                 backgroundColor: 'rgba(52,152,219,0.7)',
                 borderColor: 'rgb(52,152,219)',
