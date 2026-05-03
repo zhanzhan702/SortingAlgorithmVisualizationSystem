@@ -170,7 +170,6 @@ export function useVisualizer(svgId) {
 
   const resize = () => {
     init()
-    // 重新绘制当前数据？由调用者决定，这里只重新初始化尺寸
   }
 
   onMounted(() => {
