@@ -79,6 +79,7 @@ import { ref, watch, onUnmounted, nextTick } from 'vue'
 import { usePerformanceStore } from '../../stores/performance'
 import { useWebSocket } from '../../composables/useWebSocket'
 import { useUiStore } from '../../stores/ui'
+import { Utils } from '../../utils/helpers'
 import DataGenerator from '../../utils/dataGenerator'
 import Chart from 'chart.js/auto'
 
@@ -136,9 +137,15 @@ function runTestFromGenerate() {
         return
     }
 
-
+    Utils.logMessage('开始性能测试（生成数据）', 'info')
     uiStore.showLoading('正在运行性能测试...')
-    const testData = DataGenerator.generateData(size, 'int', testDistribution.value, 1, 1000)
+    const testData = DataGenerator.generateData(
+        size,
+        'int',
+        testDistribution.value,
+        1,
+        1000
+    )
     runAllAlgorithms(testData, testDistribution.value)
 }
 
@@ -191,6 +198,7 @@ function onFileSelect(e) {
 const algorithms = ['insertion', 'shell', 'bubble', 'quick', 'heap', 'merge']
 let pendingQueue = []      // 待发送的算法队列
 let currentTestData = null
+let currentDistribution = 'random'
 let isRunning = false
 // 监听性能结果，触发下一个请求
 watch(() => performanceStore.results.length, (newLen, oldLen) => {
@@ -212,6 +220,7 @@ function runAllAlgorithms(testData, distribution) {
     performanceStore.clear()
     pendingQueue = [...algorithms]
     currentTestData = testData
+    currentDistribution = distribution
     isRunning = true
     uiStore.showLoading('正在运行性能测试...')
     sendNext()
@@ -233,8 +242,9 @@ function sendNext() {
         algorithm: algo.toUpperCase(),
         data: currentTestData,
         dataType: 'INT',           // 应改为 'INT'，而不是 'INTEGER'（视后端枚举值而定）
-        distribution: distribution.toUpperCase()
+        distribution: currentDistribution.toUpperCase()
     }
+    Utils.logMessage(`请求算法: ${algo}`, 'info')
     sendSortRequest(request)
     // 不在这里立即发送下一个，等 PERFORMANCE_RESULT 触发 watch
 }
