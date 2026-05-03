@@ -129,6 +129,14 @@ function runTestFromGenerate() {
         uiStore.showErrorModal('性能模式最多支持1000个数据')
         return
     }
+
+    // 先检查连接
+    if (!isConnected.value) {
+        uiStore.showErrorModal('请先连接到服务器')
+        return
+    }
+
+
     uiStore.showLoading('正在运行性能测试...')
     const testData = DataGenerator.generateData(size, 'int', testDistribution.value, 1, 1000)
     runAllAlgorithms(testData, testDistribution.value)
@@ -198,6 +206,7 @@ watch(() => performanceStore.results.length, (newLen, oldLen) => {
 function runAllAlgorithms(testData, distribution) {
     if (!isConnected.value) {
         uiStore.showErrorModal('请先连接到服务器')
+        uiStore.hideLoading()
         return
     }
     performanceStore.clear()
