@@ -49,6 +49,7 @@ export function useWebSocket() {
   const handleMessage = (data) => {
     switch (data.type) {
       case 'STEP_UPDATE':
+        if (!algorithmStore.isSorting) return
         Utils.logMessage(`收到步骤更新: ${data.step}/${data.totalSteps}`, 'info')
         algorithmStore.updateStats({
           comparisons: data.stats?.comparisons || 0,
