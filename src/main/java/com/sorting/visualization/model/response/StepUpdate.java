@@ -22,7 +22,7 @@ public class StepUpdate {
     public static class Statistics {
         private Integer comparisons;     // 比较次数
         private Integer swaps;           // 交换次数
-        private Long time;               // 已用时间（毫秒）
+        private Long time;               // 已用时间（微秒）
 
         public Statistics() {
             this.comparisons = 0;
