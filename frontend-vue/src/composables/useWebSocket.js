@@ -35,10 +35,12 @@ export function useWebSocket() {
       handleMessage(data)
     }
     socket.value.onerror = () => {
+      uiStore.hideLoading()
       uiStore.showErrorModal('WebSocket 错误')
     }
     socket.value.onclose = () => {
       isConnected.value = false
+      uiStore.hideLoading()
       if (!silentClose) {
         Utils.logMessage('WebSocket 已断开', 'warning')
         uiStore.showErrorModal('连接已断开')
@@ -62,6 +64,7 @@ export function useWebSocket() {
         dataStore.updateDisplayData(data.data, data.highlight || {})
         if (data.step >= data.totalSteps) {
           algorithmStore.resetSort()
+          uiStore.hideLoading()
         }
         break
       case 'PERFORMANCE_RESULT':
