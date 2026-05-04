@@ -9,7 +9,7 @@ public class PerformanceResult {
     private String requestId;
     private String type = "PERFORMANCE_RESULT";
     private String algorithm;          // 算法名称
-    private Long time;                 // 总运行时间（毫秒）
+    private Long time;                 // 总运行时间（微秒）
     private Integer comparisons;       // 总比较次数
     private Integer swaps;             // 总交换次数
     private Integer dataSize;          // 数据大小
