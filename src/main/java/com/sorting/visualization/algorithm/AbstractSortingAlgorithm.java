@@ -68,7 +68,7 @@ public abstract class AbstractSortingAlgorithm<T> implements SortingAlgorithm<T>
     /**
      * 记录交换操作
      */
-    protected void recordSwap() {
+    private void recordSwap() {
         swaps++;
     }
 
@@ -86,7 +86,7 @@ public abstract class AbstractSortingAlgorithm<T> implements SortingAlgorithm<T>
      * 比较两个元素
      */
     protected int compare(Comparator<T> comparator, T a, T b) {
-        comparisons++;
+        recordComparison();
         return comparator.compare(a, b);
     }
 
