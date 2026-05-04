@@ -44,6 +44,7 @@ const startSort = () => {
         uiStore.showErrorModal('教学模式最多支持100个数据')
         return
     }
+    uiStore.showLoading('排序中...')
     const request = {
         mode: 'TEACHING',
         algorithm: algorithmStore.currentAlgorithm.toUpperCase(),
@@ -67,6 +68,7 @@ const resetSort = () => {
     Utils.logMessage('排序已重置', 'info')
     algorithmStore.resetSort()
     dataStore.updateDisplayData(dataStore.rawData) // 恢复原始数据
+    uiStore.hideLoading()
 }
 </script>
 
