@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useComparatorStore } from '../stores/comparator'
 
 export function useVisualizer(svgId) {
   const svg = ref(null)
@@ -13,6 +14,7 @@ export function useVisualizer(svgId) {
     heap: '#f39c12',
     pivot: '#1abc9c',
   }
+  const comparatorStore = useComparatorStore()
 
   const init = () => {
     svg.value = document.getElementById(svgId)
@@ -29,7 +31,7 @@ export function useVisualizer(svgId) {
     svg.value.appendChild(bgRect)
   }
 
-  const drawAxes = (dataCount, maxValue) => {
+  const drawAxes = (dataCount, maxValue, yAxisLabel = '元素值') => {
     // X轴
     const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line')
     xAxis.setAttribute('x1', margin.left)
@@ -68,7 +70,7 @@ export function useVisualizer(svgId) {
     yLabel.setAttribute('font-size', '12px')
     yLabel.setAttribute('fill', '#7f8c8d')
     yLabel.setAttribute('transform', `rotate(-90, 15, ${height.value / 2})`)
-    yLabel.textContent = '元素值'
+    yLabel.textContent = yAxisLabel
     svg.value.appendChild(yLabel)
 
     // Y轴刻度
@@ -120,9 +122,14 @@ export function useVisualizer(svgId) {
       ('id' in data[0] || 'score' in data[0])
 
     let values = data
+    let yAxisLabel = '元素值'
     if (isPersonData) {
-      const field = 'score'
-      values = data.map((item) => (typeof item[field] === 'number' ? item[field] : 0))
+      const field = comparatorStore.structField || 'score'
+      values = data.map((item) => {
+        const val = item[field]
+        return typeof val === 'number' ? val : parseFloat(val) || 0
+      })
+      yAxisLabel = `${field}值`
     }
 
     const maxValue = Math.max(...values, 1)
@@ -165,7 +172,7 @@ export function useVisualizer(svgId) {
       }
     })
 
-    drawAxes(data.length, maxValue)
+    drawAxes(data.length, maxValue, yAxisLabel)
   }
 
   const resize = () => {
