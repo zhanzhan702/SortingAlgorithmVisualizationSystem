@@ -8,8 +8,7 @@ export default defineConfig({
     open: true,
   },
   build: {
-    outDir:
-      'D:/Code/SortingAlgorithmVisualizationSystem/SortingAlgorithmVisualizationSystem/src/main/resources/static', // 相对路径
+    outDir: '../src/main/resources/static', // 相对路径
     emptyOutDir: true,
   },
 })
