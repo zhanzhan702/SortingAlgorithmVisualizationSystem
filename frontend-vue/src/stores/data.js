@@ -28,11 +28,13 @@ export const useDataStore = defineStore('data', {
       }
       this.rawData = newData
       this.displayData = [...newData]
+      this.highlight = {} // 重置高亮状态
     },
     setData(data, type) {
       this.rawData = data
       this.displayData = [...data]
       this.dataType = type
+      this.highlight = {} // 重置高亮状态
     },
     updateDisplayData(data, highlight = {}) {
       this.displayData = data
