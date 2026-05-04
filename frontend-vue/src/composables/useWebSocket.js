@@ -78,6 +78,18 @@ export function useWebSocket() {
       case 'CONNECTED':
         Utils.logMessage('服务器确认连接成功', 'success')
         break
+      case 'SORT_COMPLETE':
+        Utils.logMessage('排序完成', 'success')
+        algorithmStore.resetSort()
+        uiStore.hideLoading()
+        if (data.finalStats) {
+          algorithmStore.updateStats({
+            comparisons: data.finalStats.totalComparisons || 0,
+            swaps: data.finalStats.totalSwaps || 0,
+            time: data.finalStats.totalTime || 0,
+          })
+        }
+        break
       default:
         console.log('Unknown message type:', data.type)
     }
