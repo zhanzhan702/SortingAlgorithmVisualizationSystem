@@ -44,7 +44,6 @@ const startSort = () => {
         uiStore.showErrorModal('教学模式最多支持100个数据')
         return
     }
-    uiStore.showLoading('排序中...')
     const request = {
         mode: 'TEACHING',
         algorithm: algorithmStore.currentAlgorithm.toUpperCase(),
