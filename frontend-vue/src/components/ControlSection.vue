@@ -10,10 +10,10 @@
                 <i class="fas fa-redo"></i> 重置
             </button>
         </div>
-        <div class="speed-control">
-            <label>动画速度</label>
-            <input type="range" v-model.number="speed" min="100" max="2000" step="100" />
-            <span>{{ (speed / 1000).toFixed(1) }}s</span>
+        <div class="interval-control">
+            <label>步进间隔</label>
+            <input type="range" v-model.number="interval" min="100" max="2000" step="100" />
+            <span>{{ (interval / 1000).toFixed(1) }}s</span>
         </div>
     </section>
 </template>
@@ -32,7 +32,7 @@ const algorithmStore = useAlgorithmStore()
 const dataStore = useDataStore()
 const comparatorStore = useComparatorStore()
 const { sendSortRequest } = useWebSocket()
-const speed = ref(1000)
+const interval = ref(1000)
 
 const startSort = () => {
     Utils.logMessage(`开始排序: ${algorithmStore.currentAlgorithm}`, 'info')
@@ -48,7 +48,7 @@ const startSort = () => {
         mode: 'TEACHING',
         algorithm: algorithmStore.currentAlgorithm.toUpperCase(),
         data: dataStore.rawData,
-        interval: speed.value,
+        interval: interval.value,
         dataType: dataStore.dataType.toUpperCase(),
         distribution: 'RANDOM',
         ascending: comparatorStore.direction === 'ascending',
