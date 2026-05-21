@@ -47,6 +47,13 @@ public class JsonUtil {
     }
 
     /**
+     * JSON字符串转对象（抛出异常版本，推荐使用）
+     */
+    public static <T> T fromJsonOrThrow(String json, Class<T> clazz) throws JsonProcessingException {
+        return objectMapper.readValue(json, clazz);
+    }
+
+    /**
      * JSON字符串转泛型对象
      */
     public static <T> T fromJson(String json, TypeReference<T> typeReference) {
@@ -56,6 +63,13 @@ public class JsonUtil {
             log.error("JSON转泛型对象失败: {}, type: {}", json, typeReference.getType(), e);
             return null;
         }
+    }
+
+    /**
+     * JSON字符串转泛型对象（抛出异常版本，推荐使用）
+     */
+    public static <T> T fromJsonOrThrow(String json, TypeReference<T> typeReference) throws JsonProcessingException {
+        return objectMapper.readValue(json, typeReference);
     }
 
     /**

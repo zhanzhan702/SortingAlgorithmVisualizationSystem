@@ -71,10 +71,10 @@ public class WebSocketSessionManager {
     /**
      * 开始处理请求
      */
-    public void startProcessing(String sessionId, String requestId, String algorithm, String mode) {
+    public void startProcessing(String sessionId, String requestId, String algorithm, String mode, int interval) {
         SessionState state = sessionStates.get(sessionId);
         if (state != null) {
-            state.startProcessing(requestId, algorithm, mode);
+            state.startProcessing(requestId, algorithm, mode, interval);
         }
     }
 
@@ -95,6 +95,16 @@ public class WebSocketSessionManager {
         SessionState state = sessionStates.get(sessionId);
         if (state != null) {
             state.resumeProcessing();
+        }
+    }
+
+    /**
+     * 单步执行（Phase 3）
+     */
+    public void stepForward(String sessionId) {
+        SessionState state = sessionStates.get(sessionId);
+        if (state != null) {
+            state.stepForward();
         }
     }
 

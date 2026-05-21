@@ -146,9 +146,10 @@ public class MessageHandler {
         log.info("开始教学模式处理: sessionId={}, requestId={}, algorithm={}, dataSize={}",
                 sessionId, request.getRequestId(), request.getAlgorithm(), data.size());
 
-        // 标记会话开始处理
+        // 标记会话开始处理（存储初始 interval）
         sessionManager.startProcessing(sessionId, request.getRequestId(),
-                request.getAlgorithm(), request.getMode());
+                request.getAlgorithm(), request.getMode(),
+                request.getInterval() != null ? request.getInterval() : 1000);
 
         // 异步执行排序
         sessionManager.getExecutorService().submit(() -> {
@@ -188,9 +189,10 @@ public class MessageHandler {
 
             // 按间隔发送后续步骤
             for (int i = 1; i < steps.size(); i++) {
-                // 检查是否暂停
-                while (sessionManager.isPaused(sessionId)) {
-                    Thread.sleep(100);
+                // 使用事件驱动等待替代忙等轮询（零 CPU 开销）
+                SessionState state = sessionManager.getSessionState(sessionId);
+                if (state != null) {
+                    state.waitIfPaused();
                 }
 
                 // 检查是否停止
@@ -199,14 +201,16 @@ public class MessageHandler {
                     return;
                 }
 
-                Thread.sleep(interval);
+                // 从会话状态动态读取间隔（支持暂停时调整）
+                int currentInterval = (state != null) ? state.getInterval() : interval;
+                Thread.sleep(currentInterval);
 
                 StepUpdate step = steps.get(i);
                 step.setRequestId(requestId);
                 step.setTimestamp(System.currentTimeMillis());
 
                 // 更新会话步骤
-                SessionState state = sessionManager.getSessionState(sessionId);
+                state = sessionManager.getSessionState(sessionId);
                 if (state != null) {
                     state.updateStep(step.getStep());
                 }
@@ -304,7 +308,7 @@ public class MessageHandler {
     }
 
     /**
-     * 处理控制请求
+     * 处理控制请求（发送确认消息给前端）
      */
     private void handleControlRequest(String sessionId, Session session, String message) {
         ControlRequest request = JsonUtil.fromJson(message, ControlRequest.class);
@@ -320,23 +324,50 @@ public class MessageHandler {
         switch (action.toUpperCase()) {
             case "PAUSE":
                 sessionManager.pauseProcessing(sessionId);
+                sendStatusMessage(sessionId, "PAUSED", "排序已暂停");
                 log.info("暂停排序: sessionId={}, requestId={}", sessionId, requestId);
                 break;
 
             case "RESUME":
+                // 如果有新间隔值，先更新再恢复（Phase 4：暂停时调参）
+                if (request.getInterval() != null && request.getInterval() >= 100 && request.getInterval() <= 5000) {
+                    SessionState st = sessionManager.getSessionState(sessionId);
+                    if (st != null) {
+                        st.setInterval(request.getInterval());
+                        log.info("更新步进间隔: sessionId={}, interval={}ms", sessionId, request.getInterval());
+                    }
+                }
                 sessionManager.resumeProcessing(sessionId);
+                sendStatusMessage(sessionId, "RESUMED", "排序已继续");
                 log.info("恢复排序: sessionId={}, requestId={}", sessionId, requestId);
                 break;
 
             case "STOP":
                 sessionManager.stopProcessing(sessionId);
+                sendStatusMessage(sessionId, "STOPPED", "排序已停止");
                 log.info("停止排序: sessionId={}, requestId={}", sessionId, requestId);
+                break;
+
+            case "STEP_FORWARD":
+                sessionManager.stepForward(sessionId);
+                log.info("单步执行: sessionId={}, requestId={}", sessionId, requestId);
                 break;
 
             default:
                 log.warn("未知控制动作: {}", action);
                 sendError(sessionId, "VALIDATION_ERROR", "未知控制动作: " + action, requestId);
         }
+    }
+
+    /**
+     * 发送状态消息（PAUSED/RESUMED/STOPPED）
+     */
+    private void sendStatusMessage(String sessionId, String type, String message) {
+        Map<String, Object> statusMsg = new java.util.HashMap<>();
+        statusMsg.put("type", type);
+        statusMsg.put("message", message);
+        statusMsg.put("timestamp", System.currentTimeMillis());
+        sessionManager.sendMessage(sessionId, statusMsg);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.sorting.visualization.controller;
 
+import com.sorting.visualization.algorithm.AlgorithmConstants;
 import com.sorting.visualization.websocket.WebSocketSessionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,7 @@ public class HealthController {
         result.put("status", "UP");
         result.put("service", "sorting-visualization-backend");
         result.put("timestamp", System.currentTimeMillis());
-
-        // 添加会话统计
         result.put("websocket", sessionManager.getSessionStats());
-
         log.debug("健康检查通过");
         return result;
     }
@@ -39,15 +37,12 @@ public class HealthController {
     @GetMapping("/info")
     public Map<String, Object> info() {
         Map<String, Object> result = new HashMap<>();
-
-        // 系统信息
         result.put("name", "排序算法可视化系统后端");
         result.put("version", "1.0.0");
         result.put("description", "提供排序算法可视化WebSocket服务");
         result.put("author", "zhanzhan702");
         result.put("Github", "https://github.com/zhanzhan702/SortingAlgorithmVisualizationSystem.git");
 
-        // 技术栈
         Map<String, String> techStack = new HashMap<>();
         techStack.put("framework", "Spring Boot 3.1.5");
         techStack.put("java", "17");
@@ -55,15 +50,8 @@ public class HealthController {
         techStack.put("build", "Maven");
         result.put("techStack", techStack);
 
-        // 支持的算法
-        result.put("supportedAlgorithms", new String[]{
-                "BUBBLE", "INSERTION", "SHELL", "QUICK", "HEAP", "MERGE"
-        });
-
-        // 支持的数据类型
-        result.put("supportedDataTypes", new String[]{
-                "INTEGER", "DOUBLE", "PERSON"
-        });
+        result.put("supportedAlgorithms", AlgorithmConstants.ALGORITHM_IDS);
+        result.put("supportedDataTypes", new String[]{"INTEGER", "DOUBLE", "PERSON"});
 
         log.info("系统信息查询");
         return result;
@@ -75,14 +63,10 @@ public class HealthController {
     @GetMapping("/api/algorithms")
     public Map<String, Object> getAlgorithms() {
         Map<String, Object> result = new HashMap<>();
+        result.put("algorithms", AlgorithmConstants.ALGORITHM_IDS);
 
-        // 算法列表
-        String[] algorithms = {"BUBBLE", "INSERTION", "SHELL", "QUICK", "HEAP", "MERGE"};
-        result.put("algorithms", algorithms);
-
-        // 详细算法信息
         Map<String, Object> algorithmDetails = new HashMap<>();
-        for (String algo : algorithms) {
+        for (String algo : AlgorithmConstants.ALGORITHM_IDS) {
             algorithmDetails.put(algo, com.sorting.visualization.util.PseudoCodeUtil.getAlgorithmInfo(algo));
         }
         result.put("algorithmDetails", algorithmDetails);

@@ -230,12 +230,7 @@ public class DataValidator {
      * 验证算法是否支持
      */
     private boolean isValidAlgorithm(String algorithm) {
-        if (algorithm == null) return false;
-
-        String algo = algorithm.toUpperCase();
-        return "BUBBLE".equals(algo) || "INSERTION".equals(algo) ||
-                "SHELL".equals(algo) || "QUICK".equals(algo) ||
-                "HEAP".equals(algo) || "MERGE".equals(algo);
+        return com.sorting.visualization.algorithm.AlgorithmConstants.isValidAlgorithm(algorithm);
     }
 
     /**

@@ -210,6 +210,9 @@ public class PseudoCodeUtil {
                 info.put("advantages", "无");
         }
 
+        // 添加伪代码（所有算法共用此逻辑）
+        info.put("pseudocode", getPseudoCode(algorithm));
+
         return info;
     }
 }
