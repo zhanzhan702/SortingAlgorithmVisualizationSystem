@@ -6,13 +6,26 @@
                 :disabled="algorithmStore.isSorting || !dataStore.rawData.length">
                 <i class="fas fa-play"></i> 开始排序
             </button>
-            <button class="btn danger-btn" @click="resetSort">
+            <button v-if="algorithmStore.isSorting && !uiStore.isPaused" class="btn warning-btn" @click="pauseSort">
+                <i class="fas fa-pause"></i> 暂停
+            </button>
+            <button v-if="uiStore.isPaused" class="btn info-btn" @click="stepForward">
+                <i class="fas fa-step-forward"></i> 单步
+            </button>
+            <button v-if="uiStore.isPaused" class="btn success-btn" @click="resumeSort">
+                <i class="fas fa-play"></i> 继续
+            </button>
+            <button v-if="algorithmStore.isSorting" class="btn danger-btn" @click="stopSort">
+                <i class="fas fa-stop"></i> 停止
+            </button>
+            <button v-if="!algorithmStore.isSorting" class="btn danger-btn" @click="resetSort">
                 <i class="fas fa-redo"></i> 重置
             </button>
         </div>
         <div class="interval-control">
             <label>步进间隔</label>
-            <input type="range" v-model.number="interval" min="100" max="2000" step="100" />
+            <input type="range" v-model.number="interval" min="100" max="2000" step="100"
+                :disabled="algorithmStore.isSorting && !uiStore.isPaused" />
             <span>{{ (interval / 1000).toFixed(1) }}s</span>
         </div>
     </section>
@@ -31,7 +44,7 @@ const uiStore = useUiStore()
 const algorithmStore = useAlgorithmStore()
 const dataStore = useDataStore()
 const comparatorStore = useComparatorStore()
-const { sendSortRequest } = useWebSocket()
+const { sendSortRequest, sendControl } = useWebSocket()
 const interval = ref(1000)
 
 const startSort = () => {
@@ -63,10 +76,31 @@ const startSort = () => {
     algorithmStore.startSort()
 }
 
+const pauseSort = () => {
+    Utils.logMessage('暂停排序', 'info')
+    sendControl('PAUSE')
+}
+
+const resumeSort = () => {
+    Utils.logMessage('继续排序', 'info')
+    sendControl('RESUME', { interval: interval.value })
+}
+
+const stopSort = () => {
+    Utils.logMessage('停止排序', 'info')
+    sendControl('STOP')
+}
+
+const stepForward = () => {
+    Utils.logMessage('单步执行', 'info')
+    sendControl('STEP_FORWARD')
+}
+
 const resetSort = () => {
     Utils.logMessage('排序已重置', 'info')
     algorithmStore.resetSort()
-    dataStore.updateDisplayData(dataStore.rawData) // 恢复原始数据
+    dataStore.updateDisplayData(dataStore.rawData)
+    uiStore.setPaused(false)
     uiStore.hideLoading()
 }
 </script>

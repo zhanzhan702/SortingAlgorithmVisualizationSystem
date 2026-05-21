@@ -7,6 +7,7 @@ export const useUiStore = defineStore('ui', {
     loadingMessage: '正在处理...',
     errorMessage: null,
     showError: false,
+    isPaused: false,
   }),
   actions: {
     switchMode(mode) {
@@ -26,6 +27,9 @@ export const useUiStore = defineStore('ui', {
     hideErrorModal() {
       this.showError = false
       this.errorMessage = null
+    },
+    setPaused(paused) {
+      this.isPaused = paused
     },
   },
 })

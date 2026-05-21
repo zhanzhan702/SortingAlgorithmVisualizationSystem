@@ -102,33 +102,37 @@ const chartCanvas = ref(null)
 const chartSection = ref(null)
 const tableContainer = ref(null)
 
-// 更新图表
+// 更新图表（增量更新，不再 destroy + recreate）
 function updateChart() {
-    if (chart) chart.destroy()
     if (!chartCanvas.value) return
-    const ctx = chartCanvas.value.getContext('2d')
     const labels = performanceStore.results.map(r => r.algorithm)
     const times = performanceStore.results.map(r => r.time)
-    chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
+    if (chart) {
+        // 增量更新：只改 data，不重建 Chart 实例
+        chart.data.labels = labels
+        chart.data.datasets[0].data = times
+        chart.update()
+    } else {
+        const ctx = chartCanvas.value.getContext('2d')
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '运行时间 (µs)',
+                    data: times,
+                    backgroundColor: 'rgba(52,152,219,0.7)',
+                    borderColor: 'rgb(52,152,219)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                label: '运行时间 (µs)',
-                data: times,
-                backgroundColor: 'rgba(52,152,219,0.7)',
-                borderColor: 'rgb(52,152,219)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: { legend: { position: 'top' } }
-        }
-    })
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        })
+    }
 }
 
 watch(() => performanceStore.results, updateChart, { deep: true })

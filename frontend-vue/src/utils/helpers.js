@@ -53,25 +53,6 @@ export const Utils = {
     return Math.min(Math.max(value, min), max)
   },
 
-  showError: function (message) {
-    // 此方法应由 Vue 的 Modal 组件触发，这里先控制台输出并触发自定义事件
-    console.error('[UI Error]', message)
-    // 派发自定义事件供 Modal 组件监听
-    window.dispatchEvent(new CustomEvent('show-error', { detail: message }))
-  },
-
-  hideError: function () {
-    window.dispatchEvent(new CustomEvent('hide-error'))
-  },
-
-  showLoading: function (message = '正在处理...') {
-    window.dispatchEvent(new CustomEvent('show-loading', { detail: message }))
-  },
-
-  hideLoading: function () {
-    window.dispatchEvent(new CustomEvent('hide-loading'))
-  },
-
   logMessage: function (message, type = 'info') {
     console.log(`[${type.toUpperCase()}]`, message)
     window.dispatchEvent(new CustomEvent('add-log', { detail: { message, type } }))
@@ -89,9 +70,6 @@ export const {
   formatNumber,
   deepClone,
   shuffleArray,
-  showError,
   logMessage,
   clearLog,
-  showLoading,
-  hideLoading,
 } = Utils

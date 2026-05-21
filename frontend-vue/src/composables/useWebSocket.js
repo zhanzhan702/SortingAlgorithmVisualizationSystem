@@ -8,7 +8,6 @@ import { Utils } from '../utils/helpers'
 const socket = ref(null)
 const isConnected = ref(false)
 let messageQueue = []
-let isSending = false
 let silentClose = false
 
 export function useWebSocket() {
@@ -78,6 +77,20 @@ export function useWebSocket() {
       case 'CONNECTED':
         Utils.logMessage('服务器确认连接成功', 'success')
         break
+      case 'PAUSED':
+        Utils.logMessage('排序已暂停', 'info')
+        uiStore.setPaused(true)
+        break
+      case 'RESUMED':
+        Utils.logMessage('排序已继续', 'info')
+        uiStore.setPaused(false)
+        break
+      case 'STOPPED':
+        Utils.logMessage('排序已停止', 'info')
+        algorithmStore.resetSort()
+        uiStore.setPaused(false)
+        uiStore.hideLoading()
+        break
       case 'SORT_COMPLETE':
         Utils.logMessage('排序完成', 'success')
         algorithmStore.resetSort()
@@ -100,20 +113,21 @@ export function useWebSocket() {
       uiStore.showErrorModal('未连接到服务器')
       return false
     }
-    if (isSending) {
-      messageQueue.push(message)
-      return true
-    }
-    isSending = true
-    socket.value.send(JSON.stringify(message))
-    setTimeout(() => {
-      isSending = false
-      if (messageQueue.length) {
-        const next = messageQueue.shift()
-        send(next)
-      }
-    }, 100)
+    messageQueue.push(message)
+    flushQueue()
     return true
+  }
+
+  const flushQueue = () => {
+    if (socket.value.readyState !== WebSocket.OPEN) return
+    while (messageQueue.length > 0) {
+      try {
+        socket.value.send(JSON.stringify(messageQueue.shift()))
+      } catch (e) {
+        console.error('发送消息失败:', e)
+        break
+      }
+    }
   }
 
   const sendSortRequest = (request) => {
@@ -125,5 +139,16 @@ export function useWebSocket() {
     return send(msg)
   }
 
-  return { isConnected, socket, connect, sendSortRequest, send }
+  const sendControl = (action, extra = {}) => {
+    const msg = {
+      type: 'CONTROL',
+      action: action,
+      requestId: crypto.randomUUID(),
+      timestamp: Date.now(),
+      ...extra,
+    }
+    return send(msg)
+  }
+
+  return { isConnected, socket, connect, sendSortRequest, sendControl, send }
 }
