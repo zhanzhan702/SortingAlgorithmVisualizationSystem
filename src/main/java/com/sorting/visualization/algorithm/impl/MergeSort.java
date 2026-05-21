@@ -78,7 +78,6 @@ public class MergeSort<T> extends AbstractSortingAlgorithm<T> {
                     String.format("比较左子数组第%d个元素[%s]和右子数组第%d个元素[%s]",
                             i - left + 1, data.get(i), j - mid, data.get(j)));
 
-            recordComparison();
             if (compare(comparator, data.get(i), data.get(j)) <= 0) {
                 temp.add(data.get(i));
 

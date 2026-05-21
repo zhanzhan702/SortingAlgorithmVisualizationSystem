@@ -49,7 +49,6 @@ public class ShellSort<T> extends AbstractSortingAlgorithm<T> {
                             String.format("比较当前元素[%s]和第%d个元素[%s]（距离为%d）",
                                     temp, j - gap + 1, workingData.get(j - gap), gap));
 
-                    recordComparison();
                     if (compare(comparator, workingData.get(j - gap), temp) > 0) {
                         workingData.set(j, workingData.get(j - gap));
 

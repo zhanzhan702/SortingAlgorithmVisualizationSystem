@@ -85,9 +85,10 @@ public class ComparatorFactory {
                 Person p1 = (Person) a;
                 Person p2 = (Person) b;
 
-                // Person默认按score字段排序
-                double value1 = p1.getScore() != null ? p1.getScore() : 0;
-                double value2 = p2.getScore() != null ? p2.getScore() : 0;
+                // 根据 comparatorInfo.structField 动态选择排序字段，默认 score
+                String field = (structField != null) ? structField : "score";
+                double value1 = getPersonFieldValue(p1, field);
+                double value2 = getPersonFieldValue(p2, field);
 
                 return compareValues(value1, value2, ascending, method);
             };
@@ -179,5 +180,20 @@ public class ComparatorFactory {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * 从 Person 对象中获取指定字段的数值（用于排序比较）
+     */
+    private static double getPersonFieldValue(Person person, String field) {
+        if (field == null) return 0;
+        return switch (field.toLowerCase()) {
+            case "id" -> (double) person.getId();
+            case "age" -> person.getAge() != null ? (double) person.getAge() : 0;
+            case "score" -> person.getScore() != null ? person.getScore() : 0;
+            case "email" -> person.getEmail() != null ? person.getEmail().hashCode() : 0;
+            case "name" -> person.getName() != null ? person.getName().hashCode() : 0;
+            default -> 0;
+        };
     }
 }
