@@ -23,15 +23,38 @@ export function useVisualizer(svgId) {
     width.value = rect.width
     height.value = rect.height
     svg.value.innerHTML = ''
+    // 背景
     const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
     bgRect.setAttribute('width', '100%')
     bgRect.setAttribute('height', '100%')
     bgRect.setAttribute('fill', '#f9f9f9')
     bgRect.setAttribute('rx', '8')
     svg.value.appendChild(bgRect)
+    // 分组：坐标轴层 + 条形图层（增量更新时只清条形图层）
+    const axesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    axesGroup.setAttribute('id', svgId + '-axes')
+    svg.value.appendChild(axesGroup)
+    const barsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    barsGroup.setAttribute('id', svgId + '-bars')
+    svg.value.appendChild(barsGroup)
   }
 
+  // 缓存的坐标轴元数据，避免不必要的重绘
+  let _lastDataCount = -1
+  let _lastMaxValue = -1
+  let _lastYLabel = ''
+
   const drawAxes = (dataCount, maxValue, yAxisLabel = '元素值') => {
+    // 坐标轴无变化时跳过重绘
+    if (dataCount === _lastDataCount && maxValue === _lastMaxValue && yAxisLabel === _lastYLabel) return
+    _lastDataCount = dataCount
+    _lastMaxValue = maxValue
+    _lastYLabel = yAxisLabel
+
+    const axesGroup = document.getElementById(svgId + '-axes')
+    if (!axesGroup) return
+    axesGroup.innerHTML = ''
+
     // X轴
     const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line')
     xAxis.setAttribute('x1', margin.left)
@@ -40,7 +63,7 @@ export function useVisualizer(svgId) {
     xAxis.setAttribute('y2', height.value - margin.bottom)
     xAxis.setAttribute('stroke', '#95a5a6')
     xAxis.setAttribute('stroke-width', '2')
-    svg.value.appendChild(xAxis)
+    axesGroup.appendChild(xAxis)
 
     // Y轴
     const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line')
@@ -50,7 +73,7 @@ export function useVisualizer(svgId) {
     yAxis.setAttribute('y2', height.value - margin.bottom)
     yAxis.setAttribute('stroke', '#95a5a6')
     yAxis.setAttribute('stroke-width', '2')
-    svg.value.appendChild(yAxis)
+    axesGroup.appendChild(yAxis)
 
     // X轴标签
     const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
@@ -60,7 +83,7 @@ export function useVisualizer(svgId) {
     xLabel.setAttribute('font-size', '12px')
     xLabel.setAttribute('fill', '#7f8c8d')
     xLabel.textContent = `元素索引 (共 ${dataCount} 个元素)`
-    svg.value.appendChild(xLabel)
+    axesGroup.appendChild(xLabel)
 
     // Y轴标签
     const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
@@ -71,7 +94,7 @@ export function useVisualizer(svgId) {
     yLabel.setAttribute('fill', '#7f8c8d')
     yLabel.setAttribute('transform', `rotate(-90, 15, ${height.value / 2})`)
     yLabel.textContent = yAxisLabel
-    svg.value.appendChild(yLabel)
+    axesGroup.appendChild(yLabel)
 
     // Y轴刻度
     const tickCount = 5
@@ -89,7 +112,7 @@ export function useVisualizer(svgId) {
       tick.setAttribute('y2', y)
       tick.setAttribute('stroke', '#95a5a6')
       tick.setAttribute('stroke-width', '1')
-      svg.value.appendChild(tick)
+      axesGroup.appendChild(tick)
 
       const tickLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
       tickLabel.setAttribute('x', margin.left - 8)
@@ -98,7 +121,7 @@ export function useVisualizer(svgId) {
       tickLabel.setAttribute('font-size', '10px')
       tickLabel.setAttribute('fill', '#7f8c8d')
       tickLabel.textContent = Math.round(value)
-      svg.value.appendChild(tickLabel)
+      axesGroup.appendChild(tickLabel)
     }
   }
 
@@ -106,13 +129,10 @@ export function useVisualizer(svgId) {
     if (!svg.value) init()
     if (!data || data.length === 0) return
 
-    // 清除除背景外的所有元素
-    const children = Array.from(svg.value.childNodes)
-    children.forEach((child) => {
-      if (child.tagName !== 'rect' || child.getAttribute('fill') !== '#f9f9f9') {
-        svg.value.removeChild(child)
-      }
-    })
+    // 只清理条形图层，坐标轴层保留
+    const barsGroup = document.getElementById(svgId + '-bars')
+    if (!barsGroup) { init(); return }
+    barsGroup.innerHTML = ''
 
     const sortedIndices = highlight.sorted || []
     const isPersonData =
@@ -158,7 +178,7 @@ export function useVisualizer(svgId) {
       rect.setAttribute('stroke', '#fff')
       rect.setAttribute('stroke-width', '1')
       rect.setAttribute('rx', '2')
-      svg.value.appendChild(rect)
+      barsGroup.appendChild(rect)
 
       if (data.length <= 30) {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
@@ -168,7 +188,7 @@ export function useVisualizer(svgId) {
         text.setAttribute('font-size', '10px')
         text.setAttribute('fill', '#333')
         text.textContent = Math.round(value)
-        svg.value.appendChild(text)
+        barsGroup.appendChild(text)
       }
     })
 
