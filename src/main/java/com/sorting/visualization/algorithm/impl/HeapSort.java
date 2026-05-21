@@ -77,7 +77,6 @@ public class HeapSort<T> extends AbstractSortingAlgorithm<T> {
 
         // 如果左子节点更大
         if (left < heapSize) {
-            recordComparison();
             if (compare(comparator, data.get(left), data.get(largest)) > 0) {
                 largest = left;
             }
@@ -85,7 +84,6 @@ public class HeapSort<T> extends AbstractSortingAlgorithm<T> {
 
         // 如果右子节点更大
         if (right < heapSize) {
-            recordComparison();
             if (compare(comparator, data.get(right), data.get(largest)) > 0) {
                 largest = right;
             }
@@ -152,16 +150,14 @@ public class HeapSort<T> extends AbstractSortingAlgorithm<T> {
 
         // 如果左子节点更大
         if (left < heapSize) {
-            comparisons++;
-            if (comparator.compare(data.get(left), data.get(largest)) > 0) {
+            if (compare(comparator, data.get(left), data.get(largest)) > 0) {
                 largest = left;
             }
         }
 
         // 如果右子节点更大
         if (right < heapSize) {
-            comparisons++;
-            if (comparator.compare(data.get(right), data.get(largest)) > 0) {
+            if (compare(comparator, data.get(right), data.get(largest)) > 0) {
                 largest = right;
             }
         }

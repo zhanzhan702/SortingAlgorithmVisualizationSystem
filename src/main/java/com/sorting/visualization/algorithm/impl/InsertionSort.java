@@ -47,7 +47,6 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
                         String.format("比较当前元素[%s]和第%d个元素[%s]",
                                 key, j + 1, workingData.get(j)));
 
-                recordComparison();
                 if (compare(comparator, workingData.get(j), key) > 0) {
                     workingData.set(j + 1, workingData.get(j));
 

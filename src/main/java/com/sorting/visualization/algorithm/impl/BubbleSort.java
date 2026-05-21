@@ -36,7 +36,6 @@ public class BubbleSort<T> extends AbstractSortingAlgorithm<T> {
                         String.format("比较第%d个元素[%s]和第%d个元素[%s]",
                                 j + 1, workingData.get(j), j + 2, workingData.get(j + 1)));
 
-                recordComparison();
                 if (compare(comparator, workingData.get(j), workingData.get(j + 1)) > 0) {
                     changed = true;
                     swap(workingData, j, j + 1);

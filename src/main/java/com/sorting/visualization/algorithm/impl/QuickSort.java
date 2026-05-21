@@ -70,7 +70,6 @@ public class QuickSort<T> extends AbstractSortingAlgorithm<T> {
                     String.format("比较第%d个元素[%s]和基准元素[%s]",
                             j + 1, data.get(j), pivot));
 
-            recordComparison();
             if (compare(comparator, data.get(j), pivot) <= 0) {
                 i++;
 
