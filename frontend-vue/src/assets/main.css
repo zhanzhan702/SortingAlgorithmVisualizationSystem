@@ -1,4 +1,4 @@
-/* 基础样式重置 */
+﻿/* 基础样式重置 */
 * {
   margin: 0;
   padding: 0;
@@ -770,43 +770,277 @@ body {
   margin-bottom: 0;
 }
 
-/* 响应式设计 */
-@media (max-width: 1200px) {
+
+/* ========== 响应式设计 ========== */
+
+/* 1100px：缩小侧边栏宽度，保持三栏布局不挤压 */
+@media (max-width: 1100px) {
+  .control-panel {
+    width: 250px;
+    padding: 15px;
+    gap: 12px;
+  }
+  .info-panel {
+    width: 280px;
+    padding: 15px;
+    gap: 12px;
+  }
+  .main-content {
+    padding: 10px;
+    gap: 10px;
+  }
+  .algorithm-btn {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+  }
+  .control-section {
+    padding-bottom: 12px;
+  }
+  .control-section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+  }
+  .visualization-header {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pseudo-code-container {
+    max-height: 280px;
+    font-size: 12px;
+  }
+}
+
+/* 900px：堆叠为单列布局 */
+@media (max-width: 900px) {
   .main-content {
     flex-direction: column;
+    overflow-y: auto;
   }
-
   .control-panel,
   .info-panel {
     width: 100%;
+    flex-shrink: 0;
   }
-
+  .control-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+  .control-section {
+    flex: 1 1 200px;
+    min-width: 180px;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .info-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+  .info-section {
+    flex: 1 1 200px;
+    min-width: 180px;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
   .visualization-area {
-    min-height: 500px;
+    min-height: 400px;
+    flex: none;
   }
-
+  .visualization-container {
+    height: 350px;
+  }
+  .pseudo-code-container {
+    max-height: 200px;
+  }
+  .log-container {
+    height: 150px;
+  }
   .footer-content {
-    flex-direction: column;
-    gap: 10px;
-    text-align: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.8rem;
   }
 }
 
+/* 768px：紧凑控制、算法单选列 */
 @media (max-width: 768px) {
+  .header {
+    padding: 10px 15px;
+  }
+  .header h1 {
+    font-size: 1.3rem;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .subtitle {
+    display: none;
+  }
+  .main-content {
+    padding: 8px;
+    gap: 8px;
+  }
+  .control-panel,
+  .info-panel {
+    padding: 10px;
+    border-radius: 8px;
+  }
   .algorithm-selector {
     grid-template-columns: 1fr;
   }
-
-  .control-buttons {
-    grid-template-columns: 1fr;
+  .control-section {
+    flex: 1 1 150px;
+    min-width: 140px;
   }
-
+  .info-section {
+    flex: 1 1 150px;
+    min-width: 140px;
+  }
+  .visualization-header {
+    padding: 8px 12px;
+  }
+  .visualization-header h3 {
+    font-size: 0.9rem;
+  }
   .color-legend {
     flex-wrap: wrap;
-    justify-content: center;
+    gap: 8px;
+    font-size: 0.7rem;
+  }
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+  .visualization-area {
+    min-height: 300px;
+  }
+  .visualization-container {
+    height: 280px;
+    padding: 8px;
+  }
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  .form-group label {
+    font-size: 0.8rem;
+  }
+  .form-group select,
+  .form-group input {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+  .pseudo-code-container {
+    max-height: 160px;
+    padding: 10px;
+  }
+  #pseudo-code {
+    font-size: 11px;
+  }
+  .log-container {
+    height: 120px;
+    font-size: 0.75rem;
+  }
+  .algorithm-info {
+    font-size: 0.8rem;
+  }
+  .stats-display {
+    padding: 10px;
+  }
+  .footer {
+    padding: 8px 12px;
+    font-size: 0.75rem;
   }
 }
 
+/* 480px：手机小屏极致紧凑 */
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.1rem;
+  }
+  .control-panel,
+  .info-panel {
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .control-section,
+  .info-section {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .control-section h3,
+  .info-section h3 {
+    font-size: 0.85rem;
+  }
+  .visualization-area {
+    min-height: 250px;
+  }
+  .visualization-container {
+    height: 220px;
+  }
+  .visualization-header {
+    padding: 6px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .visualization-header h3 {
+    font-size: 0.8rem;
+  }
+  .color-legend {
+    gap: 5px;
+    font-size: 0.65rem;
+  }
+  .legend-item {
+    gap: 2px;
+  }
+  .legend-color {
+    width: 10px;
+    height: 10px;
+  }
+  .btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+  .form-group {
+    margin-bottom: 8px;
+  }
+  .form-group label {
+    font-size: 0.75rem;
+  }
+  .form-group select,
+  .form-group input {
+    padding: 5px 6px;
+    font-size: 0.75rem;
+  }
+  .pseudo-code-container {
+    max-height: 140px;
+    padding: 8px;
+  }
+  #pseudo-code {
+    font-size: 10px;
+  }
+  .log-container {
+    height: 100px;
+    padding: 8px;
+    font-size: 0.7rem;
+  }
+  .modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+  .footer-content {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+}
 .sort-direction {
   display: flex;
   flex-direction: column;
