@@ -1,5 +1,6 @@
 package com.sorting.visualization.service;
 
+import com.sorting.visualization.algorithm.AlgorithmConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,46 +21,15 @@ public class SortService {
     public java.util.List<java.util.Map<String, String>> getAlgorithms() {
         java.util.List<java.util.Map<String, String>> algorithms = new java.util.ArrayList<>();
 
-        String[] algorithmNames = {"BUBBLE", "INSERTION", "SHELL", "QUICK", "HEAP", "MERGE"};
-
-        for (String algo : algorithmNames) {
+        for (String algo : AlgorithmConstants.ALGORITHM_IDS) {
             java.util.Map<String, String> algoInfo = new java.util.HashMap<>();
             algoInfo.put("id", algo.toLowerCase());
-            algoInfo.put("name", getChineseName(algo));
-            algoInfo.put("complexity", getComplexity(algo));
-            algoInfo.put("type", getAlgorithmType(algo));
+            algoInfo.put("name", AlgorithmConstants.getChineseName(algo));
+            algoInfo.put("complexity", AlgorithmConstants.getComplexity(algo));
+            algoInfo.put("type", AlgorithmConstants.getStabilityType(algo));
             algorithms.add(algoInfo);
         }
 
         return algorithms;
-    }
-
-    private String getChineseName(String algorithm) {
-        return switch (algorithm.toUpperCase()) {
-            case "BUBBLE" -> "冒泡排序";
-            case "INSERTION" -> "直接插入排序";
-            case "SHELL" -> "希尔排序";
-            case "QUICK" -> "快速排序";
-            case "HEAP" -> "堆排序";
-            case "MERGE" -> "归并排序";
-            default -> "未知算法";
-        };
-    }
-
-    private String getComplexity(String algorithm) {
-        return switch (algorithm.toUpperCase()) {
-            case "BUBBLE", "INSERTION" -> "O(n²)";
-            case "SHELL", "HEAP", "MERGE" -> "O(n log n)";
-            case "QUICK" -> "O(n log n) - O(n²)";
-            default -> "未知";
-        };
-    }
-
-    private String getAlgorithmType(String algorithm) {
-        return switch (algorithm.toUpperCase()) {
-            case "BUBBLE", "INSERTION", "MERGE" -> "stable";
-            case "SHELL", "QUICK", "HEAP" -> "unstable";
-            default -> "unknown";
-        };
     }
 }
