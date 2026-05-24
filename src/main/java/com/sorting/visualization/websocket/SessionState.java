@@ -15,6 +15,7 @@ public class SessionState {
     private String currentRequestId;
     private String currentAlgorithm;
     private String currentMode;
+    private Long userId;
     private AtomicBoolean isProcessing;
     private AtomicBoolean isPaused;
     private AtomicInteger currentStep;

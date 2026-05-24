@@ -384,4 +384,35 @@ public class MessageHandler {
 
         log.warn("发送错误消息: sessionId={}, code={}, message={}", sessionId, code, message);
     }
-}
+
+    /** 保存教学实验到数据库 */
+    private void saveTeachingToDb(String sessionId, SortRequest request, SortingAlgorithm.TeachingResult<?> result) {
+        try {
+            SessionState state = sessionManager.getSessionState(sessionId);
+            if (state == null || state.getUserId() == null) return;
+            Long algoId = getAlgoId(request.getAlgorithm());
+            if (algoId == null) return;
+            experimentService.saveExperiment(
+                    state.getUserId(), algoId,
+                    request.getData().size(),
+                    result.getSteps().size(),
+                    result.getTotalComparisons(),
+                    result.getTotalSwaps(),
+                    result.getTotalTime(),
+                    request.getInterval() != null ? request.getInterval() : 1000,
+                    "COMPLETED");
+        } catch (Exception e) {
+            log.error("保存教学实验失败: sessionId={}", sessionId, e);
+        }
+    }
+
+    /** 根据算法名称查询 algo_id */
+    private Long getAlgoId(String algoName) {
+        try {
+            AlgorithmEntity algo = algorithmMapper.selectOne(
+                    new LambdaQueryWrapper<AlgorithmEntity>().eq(AlgorithmEntity::getAlgoName, algoName));
+            return algo != null ? algo.getAlgoId() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }}

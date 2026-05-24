@@ -5,6 +5,7 @@ import com.sorting.visualization.model.response.ErrorResponse;
 import com.sorting.visualization.util.JsonUtil;
 import com.sorting.visualization.websocket.MessageHandler;
 import com.sorting.visualization.websocket.WebSocketSessionManager;
+import com.sorting.visualization.util.JwtUtil;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
