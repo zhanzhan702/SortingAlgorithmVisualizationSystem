@@ -3,9 +3,11 @@ package com.sorting.visualization.controller;
 import com.sorting.visualization.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
