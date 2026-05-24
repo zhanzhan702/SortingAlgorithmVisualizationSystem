@@ -8,6 +8,7 @@ import lombok.Data;
 public class AlgorithmEntity {
     @TableId(type = IdType.AUTO)
     private Long algoId;
+    private String algoCode;
     private String algoName;
     private String category;
     private String timeComplexity;

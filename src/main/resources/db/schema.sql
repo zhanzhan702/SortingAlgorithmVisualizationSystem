@@ -26,6 +26,7 @@ CREATE TABLE users (
 -- ----------------------------
 CREATE TABLE algorithms (
     algo_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    algo_code        VARCHAR(20)  NOT NULL COMMENT '内部代码: BUBBLE/QUICK/...',
     algo_name        VARCHAR(50)  NOT NULL,
     category         VARCHAR(20)  NOT NULL COMMENT 'exchange/insertion/selection/merge/other',
     time_complexity  VARCHAR(50)  COMMENT '时间复杂度',
@@ -34,6 +35,7 @@ CREATE TABLE algorithms (
     pseudocode       TEXT         COMMENT '伪代码（多行文本）',
     description      VARCHAR(500) COMMENT '算法简介',
     advantages       VARCHAR(500) COMMENT '优点',
+    UNIQUE KEY uk_algo_code (algo_code),
     UNIQUE KEY uk_algo_name (algo_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='排序算法元数据';
 

@@ -10,6 +10,11 @@ import com.sorting.visualization.model.response.PerformanceResult;
 import com.sorting.visualization.model.response.SortComplete;
 import com.sorting.visualization.model.response.StepUpdate;
 import com.sorting.visualization.service.SortService;
+import com.sorting.visualization.service.ExperimentService;
+import com.sorting.visualization.service.BatchService;
+import com.sorting.visualization.mapper.AlgorithmMapper;
+import com.sorting.visualization.entity.AlgorithmEntity;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sorting.visualization.util.DataValidator;
 import com.sorting.visualization.util.JsonUtil;
 import jakarta.websocket.Session;
@@ -34,6 +39,12 @@ public class MessageHandler {
     private SortService sortService;
     @Autowired
     private DataValidator dataValidator;
+    @Autowired
+    private ExperimentService experimentService;
+    @Autowired
+    private BatchService batchService;
+    @Autowired
+    private AlgorithmMapper algorithmMapper;
 
     public MessageHandler() {
         // 初始化算法实例
@@ -410,7 +421,7 @@ public class MessageHandler {
     private Long getAlgoId(String algoName) {
         try {
             AlgorithmEntity algo = algorithmMapper.selectOne(
-                    new LambdaQueryWrapper<AlgorithmEntity>().eq(AlgorithmEntity::getAlgoName, algoName));
+                    new LambdaQueryWrapper<AlgorithmEntity>().eq(AlgorithmEntity::getAlgoCode, algoName));
             return algo != null ? algo.getAlgoId() : null;
         } catch (Exception e) {
             return null;
