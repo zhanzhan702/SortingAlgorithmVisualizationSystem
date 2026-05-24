@@ -55,6 +55,7 @@ import { useAlgorithmStore } from '../stores/algorithm'
 import { useDataStore } from '../stores/data'
 import { useComparatorStore } from '../stores/comparator'
 import { useWebSocket } from '../composables/useWebSocket'
+import { useAuthStore } from '../stores/auth'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
 import ControlSection from '../components/ControlSection.vue'
@@ -77,9 +78,10 @@ const { connect } = useWebSocket()
 const algorithmStore = useAlgorithmStore()
 const dataStore = useDataStore()
 const comparatorStore = useComparatorStore()
+const authStore = useAuthStore()
 
 onMounted(() => {
     algorithmStore.updatePseudocode()
-    connect('ws://localhost:8080/websocket')
+    connect('ws://localhost:8080/websocket', authStore.token)
 })
 </script>

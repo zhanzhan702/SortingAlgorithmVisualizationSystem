@@ -28,6 +28,11 @@
                 :disabled="algorithmStore.isSorting && !uiStore.isPaused" />
             <span>{{ (interval / 1000).toFixed(1) }}s</span>
         </div>
+        <div class="save-replay" v-if="uiStore.currentMode === 'teaching'">
+            <label class="checkbox-label">
+                <input type="checkbox" v-model="saveReplay" /> 保存回放（步骤快照）
+            </label>
+        </div>
     </section>
 </template>
 
@@ -46,6 +51,7 @@ const dataStore = useDataStore()
 const comparatorStore = useComparatorStore()
 const { sendSortRequest, sendControl } = useWebSocket()
 const interval = ref(1000)
+const saveReplay = ref(false)
 
 const startSort = () => {
     Utils.logMessage(`开始排序: ${algorithmStore.currentAlgorithm}`, 'info')

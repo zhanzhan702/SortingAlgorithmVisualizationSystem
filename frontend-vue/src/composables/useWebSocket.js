@@ -16,13 +16,14 @@ export function useWebSocket() {
   const uiStore = useUiStore()
   const performanceStore = usePerformanceStore()
 
-  const connect = (url) => {
+  const connect = (url, token = null) => {
     if (socket.value) {
-      silentClose = true // 标记为静默关闭
+      silentClose = true
       socket.value.close()
     }
     uiStore.showLoading('连接服务器中...')
-    socket.value = new WebSocket(url)
+    const wsUrl = token ? `${url}?token=${token}` : url
+    socket.value = new WebSocket(wsUrl)
     socket.value.onopen = () => {
       isConnected.value = true
       Utils.logMessage('WebSocket 已连接', 'success')
