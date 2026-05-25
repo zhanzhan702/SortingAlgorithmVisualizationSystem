@@ -41,34 +41,26 @@ public class DatabaseInitializer implements CommandLineRunner {
             }
             log.info("检测到 BIGINT user_id，执行UUID迁移...");
 
-            // 1. 删外键（MySQL 8.0 不支持 IF EXISTS，逐条尝试）
+            // 1. 删外键
             try { jdbcTemplate.execute("ALTER TABLE teaching_experiments DROP FOREIGN KEY teaching_experiments_ibfk_1"); } catch (Exception ignored) {}
             try { jdbcTemplate.execute("ALTER TABLE performance_batches DROP FOREIGN KEY performance_batches_ibfk_1"); } catch (Exception ignored) {}
             try { jdbcTemplate.execute("ALTER TABLE algorithm_stats DROP FOREIGN KEY algorithm_stats_ibfk_1"); } catch (Exception ignored) {}
             try { jdbcTemplate.execute("ALTER TABLE datasets DROP FOREIGN KEY datasets_ibfk_1"); } catch (Exception ignored) {}
 
-            // 2. 先改所有外键列类型为 VARCHAR(32)
+            // 2. 改所有 user_id 列为 VARCHAR(32)
             jdbcTemplate.execute("ALTER TABLE teaching_experiments MODIFY user_id VARCHAR(32) NOT NULL");
             jdbcTemplate.execute("ALTER TABLE performance_batches MODIFY user_id VARCHAR(32) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE users MODIFY user_id VARCHAR(32) NOT NULL");
             try { jdbcTemplate.execute("ALTER TABLE datasets MODIFY creator_id VARCHAR(32)"); } catch (Exception ignored) {}
 
-            // 3. 创建映射表并更新FK值
-            jdbcTemplate.execute("CREATE TEMPORARY TABLE IF NOT EXISTS user_id_map AS " +
-                "SELECT user_id AS old_id, REPLACE(UUID(),'-','') AS new_id FROM users");
+            // 3. 直接为每行生成 UUID（不保留旧 FK 关系，测试数据可重新生成）
+            jdbcTemplate.execute("UPDATE users SET user_id = REPLACE(UUID(), '-', '')");
+            jdbcTemplate.execute("UPDATE teaching_experiments SET user_id = REPLACE(UUID(), '-', '')");
+            jdbcTemplate.execute("UPDATE performance_batches SET user_id = REPLACE(UUID(), '-', '')");
 
-            jdbcTemplate.execute("UPDATE teaching_experiments te INNER JOIN user_id_map m ON te.user_id=m.old_id SET te.user_id=m.new_id");
-            jdbcTemplate.execute("UPDATE performance_batches pb INNER JOIN user_id_map m ON pb.user_id=m.old_id SET pb.user_id=m.new_id");
-
-            // 4. 改 users 主键列类型并更新值
-            jdbcTemplate.execute("ALTER TABLE users MODIFY user_id VARCHAR(32) NOT NULL");
-            jdbcTemplate.execute("UPDATE users u INNER JOIN user_id_map m ON u.user_id=m.old_id SET u.user_id=m.new_id");
-
-            // 6. 重建外键
-            jdbcTemplate.execute("ALTER TABLE teaching_experiments ADD FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE");
-            jdbcTemplate.execute("ALTER TABLE performance_batches ADD FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE");
-
-            // 7. 清理
-            jdbcTemplate.execute("DROP TEMPORARY TABLE IF EXISTS user_id_map");
+            // 4. 重建外键
+            try { jdbcTemplate.execute("ALTER TABLE teaching_experiments ADD FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("ALTER TABLE performance_batches ADD FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE"); } catch (Exception ignored) {}
 
             log.info("✅ UUID迁移完成");
         } catch (Exception e) {
