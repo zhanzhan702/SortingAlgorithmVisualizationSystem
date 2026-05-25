@@ -298,8 +298,8 @@ public class MessageHandler {
         // 保存性能结果到数据库
         try {
             SessionState state = sessionManager.getSessionState(sessionId);
-            if (state != null) {
-                String userId = state.getUserId() != null ? state.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
+            if (state != null && state.getUserId() != null) {
+                String userId = state.getUserId();
                 Long algoId = getAlgoId(request.getAlgorithm());
                 if (algoId != null) {
                     // 规范化数据类型（INT -> INTEGER 适配数据库 ENUM）
@@ -431,8 +431,11 @@ public class MessageHandler {
     private void saveTeachingToDb(String sessionId, SortingAlgorithm.TeachingResult<?> result) {
         try {
             SessionState state = sessionManager.getSessionState(sessionId);
-            if (state == null) return;
-            String userId = state.getUserId() != null ? state.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
+            if (state == null || state.getUserId() == null) {
+                log.info("未登录用户，跳过保存: sessionId={}", sessionId);
+                return;
+            }
+            String userId = state.getUserId();
             String algoName = state.getCurrentAlgorithm();
             Long algoId = getAlgoId(algoName);
             if (algoId == null) return;
@@ -471,11 +474,11 @@ public class MessageHandler {
     /** 停止时保存教学实验（部分结果） */
     private void saveTeachingToDbOnStop(String sessionId, SessionState s, SortingAlgorithm.TeachingResult<?> result) {
         try {
-            if (s == null) return;
+            if (s == null || s.getUserId() == null) return;
             String algoName = s.getCurrentAlgorithm();
             Long algoId = getAlgoId(algoName);
             if (algoId == null) return;
-            String userId = s.getUserId() != null ? s.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
+            String userId = s.getUserId();
             int dataSize = s.getDataSize() != null ? s.getDataSize() : 0;
             experimentService.saveExperiment(
                     userId, algoId,
