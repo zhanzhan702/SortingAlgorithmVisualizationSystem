@@ -52,9 +52,9 @@ public class ExperimentService {
      */
     @Async
     @Transactional
-    public Long saveExperimentWithSteps(Long userId, Long algoId, Integer dataSize,
+    public void saveExperimentWithSteps(Long userId, Long algoId, Integer dataSize,
                                          List<StepUpdate> steps, Integer intervalMs, String status) {
-        if (steps == null || steps.isEmpty()) return null;
+        if (steps == null || steps.isEmpty()) return;
 
         StepUpdate last = steps.get(steps.size() - 1);
         TeachingExperiment exp = new TeachingExperiment();
@@ -83,7 +83,6 @@ public class ExperimentService {
         }
         stepMapper.insert(stepEntities, stepEntities.size()); // 批量插入
         log.info("教学实验+步骤已保存: expId={}, steps={}", exp.getExpId(), steps.size());
-        return exp.getExpId();
     }
 
     private static String toJson(Object obj) {

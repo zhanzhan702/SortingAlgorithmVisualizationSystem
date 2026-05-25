@@ -17,7 +17,6 @@ CREATE TABLE users (
     username      VARCHAR(50)  NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role          ENUM('student','teacher','admin') DEFAULT 'student',
-    email         VARCHAR(100),
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
@@ -40,28 +39,12 @@ CREATE TABLE algorithms (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='排序算法元数据';
 
 -- ----------------------------
--- 3. 数据集表
--- ----------------------------
-CREATE TABLE datasets (
-    dataset_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name         VARCHAR(100) NOT NULL,
-    data_type    ENUM('INTEGER','DOUBLE','PERSON') NOT NULL,
-    data_size    INT          NOT NULL,
-    distribution VARCHAR(30)  COMMENT 'RANDOM/SORTED/REVERSE/DUPLICATE/NORMAL',
-    data_json    JSON         NOT NULL,
-    creator_id   BIGINT,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (creator_id) REFERENCES users(user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户保存的数据集';
-
--- ----------------------------
--- 4. 教学实验记录表（摘要）
+-- 3. 教学实验记录表（摘要）
 -- ----------------------------
 CREATE TABLE teaching_experiments (
     exp_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id      BIGINT NOT NULL,
     algo_id      BIGINT NOT NULL,
-    dataset_id   BIGINT,
     data_size    INT    NOT NULL,
     total_steps  INT    DEFAULT 0,
     comparisons  INT    DEFAULT 0,
@@ -73,7 +56,6 @@ CREATE TABLE teaching_experiments (
     finished_at  TIMESTAMP NULL,
     FOREIGN KEY (user_id)    REFERENCES users(user_id)      ON DELETE CASCADE,
     FOREIGN KEY (algo_id)    REFERENCES algorithms(algo_id) ON DELETE RESTRICT,
-    FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id) ON DELETE SET NULL,
     INDEX idx_exp_user_time (user_id, started_at),
     INDEX idx_exp_algo_status (algo_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='教学实验摘要';

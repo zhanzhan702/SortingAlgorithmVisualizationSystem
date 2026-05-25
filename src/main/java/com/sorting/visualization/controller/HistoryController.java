@@ -1,9 +1,12 @@
 package com.sorting.visualization.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sorting.visualization.entity.BatchDetail;
 import com.sorting.visualization.entity.ExperimentStep;
+import com.sorting.visualization.entity.PerformanceBatch;
 import com.sorting.visualization.entity.TeachingExperiment;
 import com.sorting.visualization.mapper.BatchDetailMapper;
+import com.sorting.visualization.mapper.PerformanceBatchMapper;
 import com.sorting.visualization.mapper.TeachingExperimentMapper;
 import com.sorting.visualization.service.ExperimentService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class HistoryController {
     private final ExperimentService experimentService;
     private final TeachingExperimentMapper experimentMapper;
     private final BatchDetailMapper batchDetailMapper;
+    private final PerformanceBatchMapper performanceBatchMapper;
 
     /** 分页查询教学实验历史 */
     @GetMapping("/experiments")
@@ -53,5 +57,32 @@ public class HistoryController {
             map.put("data", experimentMapper.statsByDateRange(start, end));
         }
         return map;
+    }
+
+    /** 分页查询性能测试批次 */
+    @GetMapping("/performance")
+    public Map<String, Object> getPerformanceBatches(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<PerformanceBatch> p = new Page<>(page, size);
+        Page<PerformanceBatch> result = performanceBatchMapper.selectPage(p,
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<PerformanceBatch>()
+                        .eq(PerformanceBatch::getUserId, userId)
+                        .orderByDesc(PerformanceBatch::getCreatedAt));
+        Map<String, Object> map = new HashMap<>();
+        map.put("records", result.getRecords());
+        map.put("total", result.getTotal());
+        map.put("page", page);
+        return map;
+    }
+
+    /** 查询性能批次的明细 */
+    @GetMapping("/performance/{batchId}/details")
+    public List<Map<String, Object>> getPerformanceDetails(@PathVariable Long batchId) {
+        return batchDetailMapper.selectMaps(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.sorting.visualization.entity.BatchDetail>()
+                        .eq(com.sorting.visualization.entity.BatchDetail::getBatchId, batchId)
+                        .orderByAsc(com.sorting.visualization.entity.BatchDetail::getRank));
     }
 }

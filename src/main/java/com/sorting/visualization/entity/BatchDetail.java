@@ -13,5 +13,6 @@ public class BatchDetail {
     private Integer comparisons;
     private Integer swaps;
     private Long timeMicros;
+    @TableField("`rank`")
     private Integer rank;
 }

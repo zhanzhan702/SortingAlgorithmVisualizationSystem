@@ -4,6 +4,7 @@ package com.sorting.visualization.controller;
 import com.sorting.visualization.model.response.ErrorResponse;
 import com.sorting.visualization.util.JsonUtil;
 import com.sorting.visualization.websocket.MessageHandler;
+import com.sorting.visualization.websocket.SessionState;
 import com.sorting.visualization.websocket.WebSocketSessionManager;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +49,27 @@ public class WebSocketController {
         // 初始化会话管理器
         if (sessionManager != null) {
             sessionManager.addSession(sessionId, session);
+        }
+
+        // 解析 token 参数，默认 userId=1（未登录用户）
+        try {
+            URI uri = session.getRequestURI();
+            String query = uri.getQuery();
+            if (query != null && query.contains("token=")) {
+                String token = query.substring(query.indexOf("token=") + 6);
+                if (token.contains("&")) token = token.substring(0, token.indexOf("&"));
+                // 简单处理：有 token 即认为已登录，userId 默认 1
+                SessionState st = sessionManager.getSessionState(sessionId);
+                if (st != null) st.setUserId(1L);
+                log.info("WebSocket 已认证: sessionId={}, token={}", sessionId, token);
+            } else {
+                SessionState st = sessionManager.getSessionState(sessionId);
+                if (st != null) st.setUserId(1L); // 默认 userId=1
+            }
+        } catch (Exception e) {
+            log.warn("解析 token 失败: sessionId={}", sessionId, e);
+            SessionState st = sessionManager.getSessionState(sessionId);
+            if (st != null) st.setUserId(1L);
         }
 
         // 发送连接成功消息

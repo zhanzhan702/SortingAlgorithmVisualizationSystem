@@ -157,10 +157,12 @@ public class MessageHandler {
         log.info("开始教学模式处理: sessionId={}, requestId={}, algorithm={}, dataSize={}",
                 sessionId, request.getRequestId(), request.getAlgorithm(), data.size());
 
-        // 标记会话开始处理（存储初始 interval）
+        // 标记会话开始处理（存储初始 interval 和 dataSize）
+        boolean saveReplay = request.getSaveReplay() != null && request.getSaveReplay();
         sessionManager.startProcessing(sessionId, request.getRequestId(),
                 request.getAlgorithm(), request.getMode(),
-                request.getInterval() != null ? request.getInterval() : 1000);
+                request.getInterval() != null ? request.getInterval() : 1000,
+                data.size(), saveReplay);
 
         // 异步执行排序
         sessionManager.getExecutorService().submit(() -> {
@@ -209,6 +211,8 @@ public class MessageHandler {
                 // 检查是否停止
                 if (!sessionManager.isProcessing(sessionId)) {
                     log.info("排序被停止: sessionId={}, requestId={}", sessionId, requestId);
+                    // 停止时保存部分结果
+                    saveTeachingToDbOnStop(sessionId, state, result);
                     return;
                 }
 
@@ -231,6 +235,9 @@ public class MessageHandler {
 
             // 发送完成消息
             sendSortComplete(sessionId, requestId, result);
+
+            // 保存教学实验到数据库
+            saveTeachingToDb(sessionId, result);
 
         } catch (InterruptedException e) {
             log.info("排序被中断: sessionId={}, requestId={}", sessionId, requestId);
@@ -287,6 +294,30 @@ public class MessageHandler {
         response.setTimestamp(System.currentTimeMillis());
 
         sessionManager.sendMessage(sessionId, response);
+
+        // 保存性能结果到数据库
+        try {
+            SessionState state = sessionManager.getSessionState(sessionId);
+            if (state != null) {
+                Long userId = state.getUserId() != null ? state.getUserId() : 1L;
+                Long algoId = getAlgoId(request.getAlgorithm());
+                if (algoId != null) {
+                    // 规范化数据类型（INT -> INTEGER 适配数据库 ENUM）
+                    String dt = request.getDataType();
+                    if ("INT".equalsIgnoreCase(dt)) dt = "INTEGER";
+                    else if (dt != null) dt = dt.toUpperCase();
+                    // 规范化分布字段
+                    String dist = request.getDistribution();
+                    if (dist != null) dist = dist.toUpperCase();
+                    else dist = "RANDOM";
+                    batchService.saveBatch(userId, request.getData().size(),
+                            dist, dt,
+                            List.of(response), List.of(algoId));
+                }
+            }
+        } catch (Exception e) {
+            log.error("保存性能结果失败: sessionId={}", sessionId, e);
+        }
 
         log.info("性能模式完成: sessionId={}, requestId={}, algorithm={}, time={}ms, comparisons={}, swaps={}",
                 sessionId, request.getRequestId(), request.getAlgorithm(),
@@ -397,21 +428,31 @@ public class MessageHandler {
     }
 
     /** 保存教学实验到数据库 */
-    private void saveTeachingToDb(String sessionId, SortRequest request, SortingAlgorithm.TeachingResult<?> result) {
+    private void saveTeachingToDb(String sessionId, SortingAlgorithm.TeachingResult<?> result) {
         try {
             SessionState state = sessionManager.getSessionState(sessionId);
-            if (state == null || state.getUserId() == null) return;
-            Long algoId = getAlgoId(request.getAlgorithm());
+            if (state == null) return;
+            Long userId = state.getUserId() != null ? state.getUserId() : 1L;
+            String algoName = state.getCurrentAlgorithm();
+            Long algoId = getAlgoId(algoName);
             if (algoId == null) return;
-            experimentService.saveExperiment(
-                    state.getUserId(), algoId,
-                    request.getData().size(),
-                    result.getSteps().size(),
-                    result.getTotalComparisons(),
-                    result.getTotalSwaps(),
-                    result.getTotalTime(),
-                    request.getInterval() != null ? request.getInterval() : 1000,
-                    "COMPLETED");
+
+            if (state.getSaveReplay() != null && state.getSaveReplay()) {
+                // 保存实验 + 步骤快照
+                experimentService.saveExperimentWithSteps(
+                        userId, algoId, state.getDataSize(),
+                        result.getSteps(), state.getInterval(), "COMPLETED");
+            } else {
+                experimentService.saveExperiment(
+                        userId, algoId,
+                        state.getDataSize() != null ? state.getDataSize() : 0,
+                        result.getSteps().size(),
+                        result.getTotalComparisons(),
+                        result.getTotalSwaps(),
+                        result.getTotalTime(),
+                        state.getInterval(),
+                        "COMPLETED");
+            }
         } catch (Exception e) {
             log.error("保存教学实验失败: sessionId={}", sessionId, e);
         }
@@ -425,5 +466,28 @@ public class MessageHandler {
             return algo != null ? algo.getAlgoId() : null;
         } catch (Exception e) {
             return null;
+        }
+    }
+    /** 停止时保存教学实验（部分结果） */
+    private void saveTeachingToDbOnStop(String sessionId, SessionState s, SortingAlgorithm.TeachingResult<?> result) {
+        try {
+            if (s == null) return;
+            String algoName = s.getCurrentAlgorithm();
+            Long algoId = getAlgoId(algoName);
+            if (algoId == null) return;
+            Long userId = s.getUserId() != null ? s.getUserId() : 1L;
+            int dataSize = s.getDataSize() != null ? s.getDataSize() : 0;
+            experimentService.saveExperiment(
+                    userId, algoId,
+                    dataSize,
+                    s.getCurrentStep(),
+                    result.getTotalComparisons(),
+                    result.getTotalSwaps(),
+                    result.getTotalTime(),
+                    s.getInterval(),
+                    "STOPPED");
+            log.info("已保存停止的实验: sessionId={}, steps={}", sessionId, s.getCurrentStep());
+        } catch (Exception e) {
+            log.error("保存停止实验失败: sessionId={}", sessionId, e);
         }
     }}

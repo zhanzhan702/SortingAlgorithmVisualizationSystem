@@ -1,9 +1,12 @@
 package com.sorting.visualization.controller;
 
+import com.sorting.visualization.entity.AlgorithmStat;
+import com.sorting.visualization.mapper.AlgorithmStatMapper;
 import com.sorting.visualization.service.BackupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -12,6 +15,31 @@ import java.util.Map;
 public class AdminController {
 
     private final BackupService backupService;
+    private final AlgorithmStatMapper algorithmStatMapper;
+
+    /** 获取算法统计数据（触发器自动维护） */
+    @GetMapping("/stats")
+    public List<AlgorithmStat> getStats() {
+        return algorithmStatMapper.selectList(null);
+    }
+
+    /** 获取算法综合排名（视图） */
+    @GetMapping("/ranking")
+    public List<Map<String, Object>> getRanking() {
+        return algorithmStatMapper.selectRanking();
+    }
+
+    /** 获取用户活跃度（视图） */
+    @GetMapping("/activity")
+    public List<Map<String, Object>> getActivity() {
+        return algorithmStatMapper.selectUserActivity();
+    }
+
+    /** 生成用户实验报告（存储过程） */
+    @GetMapping("/report")
+    public List<Map<String, Object>> getReport(@RequestParam Long userId) {
+        return algorithmStatMapper.callUserReport(userId);
+    }
 
     /** 触发备份 */
     @PostMapping("/backup")

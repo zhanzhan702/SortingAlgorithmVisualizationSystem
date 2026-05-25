@@ -11,7 +11,6 @@ public class TeachingExperiment {
     private Long expId;
     private Long userId;
     private Long algoId;
-    private Long datasetId;
     private Integer dataSize;
     private Integer totalSteps;
     private Integer comparisons;

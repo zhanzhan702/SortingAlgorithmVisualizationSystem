@@ -20,7 +20,6 @@ public class BackupService {
 
     private final UserMapper userMapper;
     private final AlgorithmMapper algorithmMapper;
-    private final DatasetMapper datasetMapper;
     private final TeachingExperimentMapper experimentMapper;
     private final PerformanceBatchMapper batchMapper;
     private final BatchDetailMapper batchDetailMapper;
@@ -47,7 +46,6 @@ public class BackupService {
             // 导出各表数据
             exportTable(writer, "users", userMapper.selectList(null));
             exportTable(writer, "algorithms", algorithmMapper.selectList(null));
-            exportTable(writer, "datasets", datasetMapper.selectList(new LambdaQueryWrapper<Dataset>().last("LIMIT 1000")));
             exportTable(writer, "teaching_experiments", experimentMapper.selectList(
                     new LambdaQueryWrapper<TeachingExperiment>().last("LIMIT 10000")));
             exportTable(writer, "performance_batches", batchMapper.selectList(

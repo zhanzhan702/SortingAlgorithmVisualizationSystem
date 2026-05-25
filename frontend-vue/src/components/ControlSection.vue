@@ -71,6 +71,7 @@ const startSort = () => {
         dataType: dataStore.dataType.toUpperCase(),
         distribution: 'RANDOM',
         ascending: comparatorStore.direction === 'ascending',
+        saveReplay: saveReplay.value,
         comparatorInfo: {
             direction: comparatorStore.direction,
             method: comparatorStore.method,

@@ -16,6 +16,9 @@ public class SessionState {
     private String currentAlgorithm;
     private String currentMode;
     private Long userId;
+    /** 排序数据量、是否保存回放（用于保存到数据库） */
+    private Integer dataSize;
+    private Boolean saveReplay = false;
     private AtomicBoolean isProcessing;
     private AtomicBoolean isPaused;
     private AtomicInteger currentStep;
@@ -37,11 +40,13 @@ public class SessionState {
     /**
      * 开始处理
      */
-    public void startProcessing(String requestId, String algorithm, String mode, int interval) {
+    public void startProcessing(String requestId, String algorithm, String mode, int interval, int dataSize, boolean saveReplay) {
         this.currentRequestId = requestId;
         this.currentAlgorithm = algorithm;
         this.currentMode = mode;
         this.interval = interval;
+        this.dataSize = dataSize;
+        this.saveReplay = saveReplay;
         this.isProcessing.set(true);
         this.isPaused.set(false);
         this.currentStep.set(0);
