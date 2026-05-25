@@ -46,8 +46,9 @@ const error = ref('')
 const handleSubmit = async () => {
   error.value = ''
   const url = isRegister.value ? '/api/auth/register' : '/api/auth/login'
+  const fullUrl = url
   try {
-    const res = await fetch('http://localhost:8080' + url, {
+    const res = await fetch(fullUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username.value, password: password.value, role: role.value }),
@@ -60,7 +61,7 @@ const handleSubmit = async () => {
       error.value = data.message || '操作失败'
     }
   } catch (e) {
-    error.value = '服务器连接失败'
+    error.value = '服务器连接失败: ' + e.message
   }
 }
 </script>

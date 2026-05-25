@@ -42,7 +42,7 @@ export const useAlgorithmStore = defineStore('algorithm', {
         return
       }
       // 从后端 API 获取伪代码
-      fetch('http://localhost:8080/api/algorithms')
+      fetch('/api/algorithms')
         .then(res => res.json())
         .then(data => {
           const details = data?.algorithmDetails?.[algo]

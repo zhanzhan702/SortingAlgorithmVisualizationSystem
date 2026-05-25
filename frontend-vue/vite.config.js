@@ -6,9 +6,19 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+      },
+    },
   },
   build: {
-    outDir: '../src/main/resources/static', // 相对路径
+    outDir: '../src/main/resources/static',
     emptyOutDir: true,
   },
 })

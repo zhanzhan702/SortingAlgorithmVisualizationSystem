@@ -13,7 +13,7 @@ export const useHistoryStore = defineStore('history', {
       this.loading = true
       try {
         const res = await fetch(
-          `http://localhost:8080/api/history/experiments?userId=${userId}&page=${page}&size=${this.pageSize}`
+          `/api/history/experiments?userId=${userId}&page=${page}&size=${this.pageSize}`
         )
         const data = await res.json()
         this.experiments = data.records || []
@@ -27,7 +27,7 @@ export const useHistoryStore = defineStore('history', {
     },
     async fetchSteps(expId) {
       try {
-        const res = await fetch(`http://localhost:8080/api/history/experiments/${expId}/steps`)
+        const res = await fetch(`/api/history/experiments/${expId}/steps`)
         return await res.json()
       } catch (e) {
         console.error('获取步骤失败:', e)
