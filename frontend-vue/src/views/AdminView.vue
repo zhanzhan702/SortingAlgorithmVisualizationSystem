@@ -18,7 +18,16 @@
       <section v-if="activeTab === 'stats'">
         <table class="data-table" v-if="stats.length">
           <thead>
-            <tr><th>算法ID</th><th>教学次数</th><th>教学均比</th><th>教学均换</th><th>教学均时(µs)</th><th>性能次数</th><th>性能均比</th><th>性能均换</th><th>性能均时(µs)</th></tr>
+            <tr>
+              <th>算法</th>
+              <th colspan="4">📖 教学维度</th>
+              <th colspan="4">⚡ 性能维度</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th>实验次数</th><th>均比较</th><th>均交换</th><th>均时(µs)</th>
+              <th>测试次数</th><th>均比较</th><th>均交换</th><th>均时(µs)</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="s in stats" :key="s.algoId">
@@ -34,7 +43,7 @@
             </tr>
           </tbody>
         </table>
-        <p v-else>暂无统计数据（运行教学/性能模式后自动生成）</p>
+        <p v-else>暂无统计数据（运行教学/性能模式后由触发器自动生成）</p>
       </section>
 
       <!-- 综合排名 -->
@@ -64,11 +73,14 @@
       <!-- 用户活跃度（视图） -->
       <section v-if="activeTab === 'activity'">
         <table class="data-table" v-if="activity.length">
-          <thead><tr><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
+          <thead><tr><th>用户ID</th><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
           <tbody>
             <tr v-for="a in activity" :key="a.user_id">
-              <td style="font-size:0.7rem;font-family:monospace">{{ a.user_id }}</td><td>{{ a.username }}</td><td>{{ a.role }}</td>
-              <td>{{ a.teaching_experiments }}</td><td>{{ a.performance_batches }}</td>
+              <td style="font-size:0.7rem;font-family:monospace">{{ a.user_id }}</td>
+              <td>{{ a.username }}</td>
+              <td>{{ a.role }}</td>
+              <td>{{ a.teaching_experiments }}</td>
+              <td>{{ a.performance_batches }}</td>
               <td>{{ a.last_activity }}</td>
             </tr>
           </tbody>
