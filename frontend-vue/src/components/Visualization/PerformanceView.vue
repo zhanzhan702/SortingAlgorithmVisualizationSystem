@@ -13,9 +13,7 @@
                         <thead>
                             <tr>
                                 <th>算法</th>
-                                <th>数据量</th>
-                                <th>总耗时(µs)</th>
-                                <th>每元素(ns)</th>
+                                <th>时间(µs)</th>
                                 <th>比较次数</th>
                                 <th>交换次数</th>
                             </tr>
@@ -23,9 +21,7 @@
                         <tbody>
                             <tr v-for="algo in performanceStore.results" :key="algo.algorithm">
                                 <td>{{ algo.algorithm }}</td>
-                                <td>{{ algo.dataSize || '-' }}</td>
                                 <td>{{ algo.time }}</td>
-                                <td>{{ algo.dataSize ? (algo.time * 1000 / algo.dataSize).toFixed(0) : '-' }}</td>
                                 <td>{{ algo.comparisons }}</td>
                                 <td>{{ algo.swaps }}</td>
                             </tr>
@@ -109,12 +105,12 @@ const tableContainer = ref(null)
 // 更新图表（增量更新，不再 destroy + recreate）
 function updateChart() {
     if (!chartCanvas.value) return
-    const labels = performanceStore.results.map(r => `${r.algorithm} (${r.dataSize || '?'})`)
-    const times = performanceStore.results.map(r => r.dataSize ? +(r.time / r.dataSize).toFixed(1) : r.time)
+    const labels = performanceStore.results.map(r => r.algorithm)
+    const times = performanceStore.results.map(r => r.time)
     if (chart) {
+        // 增量更新：只改 data，不重建 Chart 实例
         chart.data.labels = labels
         chart.data.datasets[0].data = times
-        chart.data.datasets[0].label = '每元素耗时 (µs/个)'
         chart.update()
     } else {
         const ctx = chartCanvas.value.getContext('2d')
@@ -123,7 +119,7 @@ function updateChart() {
             data: {
                 labels,
                 datasets: [{
-                    label: '每元素耗时 (µs/个)',
+                    label: '运行时间 (µs)',
                     data: times,
                     backgroundColor: 'rgba(52,152,219,0.7)',
                     borderColor: 'rgb(52,152,219)',

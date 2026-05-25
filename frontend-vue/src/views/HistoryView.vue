@@ -134,14 +134,13 @@
           <h4 style="margin-top:12px">算法排名</h4>
           <table class="perf-detail-table" v-if="perfDetails.length">
             <thead>
-              <tr><th>排名</th><th>算法</th><th>耗时(µs)</th><th>每元素(ns)</th><th>比较次数</th><th>交换次数</th></tr>
+              <tr><th>排名</th><th>算法</th><th>耗时(µs)</th><th>比较次数</th><th>交换次数</th></tr>
             </thead>
             <tbody>
               <tr v-for="d in perfDetails" :key="d.detail_id || d.rank">
                 <td>#{{ d.rank }}</td>
                 <td>{{ getAlgoName(d.algo_id) }}</td>
                 <td>{{ d.time_micros }}</td>
-                <td>{{ perfDetailBatch?.dataSize ? (d.time_micros * 1000 / perfDetailBatch.dataSize).toFixed(0) : '-' }}</td>
                 <td>{{ d.comparisons }}</td>
                 <td>{{ d.swaps }}</td>
               </tr>

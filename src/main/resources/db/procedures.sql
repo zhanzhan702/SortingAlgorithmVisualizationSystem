@@ -63,20 +63,34 @@ DELIMITER ;
 -- 视图 (2个) — 由管理后台"统计"Tab 调用
 -- ============================================================
 
--- 视图 1：算法综合排名（按性能测试平均耗时排序）
+-- 视图 1：算法综合排名（结合数据量——按每元素耗时排序）
 DROP VIEW IF EXISTS v_algorithm_ranking;
 CREATE VIEW v_algorithm_ranking AS
 SELECT
-    a.algo_name                     AS algo_name,
-    a.category                      AS category,
-    a.time_complexity               AS time_complexity,
-    a.is_stable                     AS is_stable,
+    a.algo_name,
+    a.category,
+    a.time_complexity,
+    a.is_stable,
     COALESCE(s.total_experiments, 0) AS teaching_count,
     COALESCE(s.total_batches, 0)    AS performance_count,
     COALESCE(s.avg_batch_time_micros, 0) AS avg_perf_time_us,
-    RANK() OVER (ORDER BY COALESCE(s.avg_batch_time_micros, 999999999)) AS speed_rank
+    COALESCE(ds.avg_data_size, 0)   AS avg_data_size,
+    CASE WHEN ds.avg_data_size > 0
+         THEN ROUND(s.avg_batch_time_micros / ds.avg_data_size, 2)
+         ELSE 0 END                  AS time_per_element_us,
+    RANK() OVER (
+        ORDER BY CASE WHEN ds.avg_data_size > 0
+                  THEN s.avg_batch_time_micros / ds.avg_data_size
+                  ELSE 999999999 END
+    ) AS speed_rank
 FROM algorithms a
-LEFT JOIN algorithm_stats s ON a.algo_id = s.algo_id;
+LEFT JOIN algorithm_stats s ON a.algo_id = s.algo_id
+LEFT JOIN (
+    SELECT bd.algo_id, ROUND(AVG(pb.data_size), 0) AS avg_data_size
+    FROM batch_details bd
+    JOIN performance_batches pb ON bd.batch_id = pb.batch_id
+    GROUP BY bd.algo_id
+) ds ON a.algo_id = ds.algo_id;
 
 -- 视图 2：用户活跃度汇总
 DROP VIEW IF EXISTS v_user_activity;

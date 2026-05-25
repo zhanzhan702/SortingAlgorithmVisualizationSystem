@@ -41,7 +41,7 @@
       <section v-if="activeTab === 'ranking'">
         <table class="data-table" v-if="ranking.length">
           <thead>
-            <tr><th>算法</th><th>类别</th><th>时间复杂度</th><th>稳定</th><th>教学次数</th><th>性能次数</th><th>均时(µs)</th><th>排名</th></tr>
+            <tr><th>算法</th><th>类别</th><th>复杂度</th><th>稳定</th><th>教学</th><th>性能</th><th>均时(µs)</th><th>均数据量</th><th>时/元素(µs)</th><th>排名</th></tr>
           </thead>
           <tbody>
             <tr v-for="r in ranking" :key="r.algo_name">
@@ -52,6 +52,8 @@
               <td>{{ r.teaching_count }}</td>
               <td>{{ r.performance_count }}</td>
               <td>{{ r.avg_perf_time_us }}</td>
+              <td>{{ r.avg_data_size }}</td>
+              <td>{{ r.time_per_element_us }}</td>
               <td><strong>#{{ r.speed_rank }}</strong></td>
             </tr>
           </tbody>
@@ -62,7 +64,7 @@
       <!-- 用户活跃度（视图） -->
       <section v-if="activeTab === 'activity'">
         <table class="data-table" v-if="activity.length">
-          <thead><tr><th>用户ID</th><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
+          <thead><tr><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
           <tbody>
             <tr v-for="a in activity" :key="a.user_id">
               <td style="font-size:0.7rem;font-family:monospace">{{ a.user_id }}</td><td>{{ a.username }}</td><td>{{ a.role }}</td>
