@@ -82,6 +82,7 @@ LEFT JOIN algorithm_stats s ON a.algo_id = s.algo_id;
 DROP VIEW IF EXISTS v_user_activity;
 CREATE VIEW v_user_activity AS
 SELECT
+    u.user_id,
     u.username,
     u.role,
     COALESCE(te.exp_count, 0)  AS teaching_experiments,

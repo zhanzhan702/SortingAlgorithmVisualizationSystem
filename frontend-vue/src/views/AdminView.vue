@@ -62,10 +62,10 @@
       <!-- 用户活跃度（视图） -->
       <section v-if="activeTab === 'activity'">
         <table class="data-table" v-if="activity.length">
-          <thead><tr><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
+          <thead><tr><th>用户ID</th><th>用户名</th><th>角色</th><th>教学次数</th><th>性能批次</th><th>最后活动</th></tr></thead>
           <tbody>
-            <tr v-for="a in activity" :key="a.username">
-              <td>{{ a.username }}</td><td>{{ a.role }}</td>
+            <tr v-for="a in activity" :key="a.user_id">
+              <td style="font-size:0.7rem;font-family:monospace">{{ a.user_id }}</td><td>{{ a.username }}</td><td>{{ a.role }}</td>
               <td>{{ a.teaching_experiments }}</td><td>{{ a.performance_batches }}</td>
               <td>{{ a.last_activity }}</td>
             </tr>
