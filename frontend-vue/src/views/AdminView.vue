@@ -50,7 +50,7 @@
       <section v-if="activeTab === 'ranking'">
         <table class="data-table" v-if="ranking.length">
           <thead>
-            <tr><th>算法</th><th>类别</th><th>复杂度</th><th>稳定</th><th>教学</th><th>性能</th><th>均时(µs)</th><th>均数据量</th><th>时/元素(µs)</th><th>排名</th></tr>
+            <tr><th>算法</th><th>类别</th><th>复杂度</th><th>稳定</th><th>教学次数</th><th>教学均时(µs)</th><th>性能次数</th><th>性能均时(µs)</th><th>性能均数据量</th><th>时/元素(µs)</th><th>排名</th></tr>
           </thead>
           <tbody>
             <tr v-for="r in ranking" :key="r.algo_name">
@@ -59,10 +59,11 @@
               <td>{{ r.time_complexity }}</td>
               <td>{{ r.is_stable ? '是' : '否' }}</td>
               <td>{{ r.teaching_count }}</td>
-              <td>{{ r.performance_count }}</td>
-              <td>{{ r.avg_perf_time_us }}</td>
-              <td>{{ r.avg_data_size }}</td>
-              <td>{{ r.time_per_element_us }}</td>
+              <td>{{ r.teach_avg_time_us }}</td>
+              <td>{{ r.perf_count }}</td>
+              <td>{{ r.perf_avg_time_us }}</td>
+              <td>{{ r.perf_avg_data_size || '-' }}</td>
+              <td>{{ r.perf_time_per_element_us ?? '-' }}</td>
               <td><strong>#{{ r.speed_rank }}</strong></td>
             </tr>
           </tbody>

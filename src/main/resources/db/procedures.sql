@@ -63,7 +63,7 @@ DELIMITER ;
 -- 视图 (2个) — 由管理后台"统计"Tab 调用
 -- ============================================================
 
--- 视图 1：算法综合排名（结合数据量——按每元素耗时排序）
+-- 视图 1：算法综合排名（纯性能数据，按每元素耗时排序）
 DROP VIEW IF EXISTS v_algorithm_ranking;
 CREATE VIEW v_algorithm_ranking AS
 SELECT
@@ -72,14 +72,15 @@ SELECT
     a.time_complexity,
     a.is_stable,
     COALESCE(s.total_experiments, 0) AS teaching_count,
-    COALESCE(s.total_batches, 0)    AS performance_count,
-    COALESCE(s.avg_batch_time_micros, 0) AS avg_perf_time_us,
-    COALESCE(ds.avg_data_size, 0)   AS avg_data_size,
-    CASE WHEN ds.avg_data_size > 0
+    COALESCE(s.total_batches, 0)    AS perf_count,
+    COALESCE(s.avg_exp_time_micros, 0)   AS teach_avg_time_us,
+    COALESCE(s.avg_batch_time_micros, 0) AS perf_avg_time_us,
+    COALESCE(ds.avg_data_size, 0)   AS perf_avg_data_size,
+    CASE WHEN ds.avg_data_size > 0 AND s.avg_batch_time_micros > 0
          THEN ROUND(s.avg_batch_time_micros / ds.avg_data_size, 2)
-         ELSE 0 END                  AS time_per_element_us,
+         ELSE NULL END               AS perf_time_per_element_us,
     RANK() OVER (
-        ORDER BY CASE WHEN ds.avg_data_size > 0
+        ORDER BY CASE WHEN ds.avg_data_size > 0 AND s.avg_batch_time_micros > 0
                   THEN s.avg_batch_time_micros / ds.avg_data_size
                   ELSE 999999999 END
     ) AS speed_rank
