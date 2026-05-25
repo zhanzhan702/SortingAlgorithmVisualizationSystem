@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class TeachingExperiment {
     @TableId(type = IdType.AUTO)
     private Long expId;
-    private Long userId;
+    private String userId;
     private Long algoId;
     private Integer dataSize;
     private Integer totalSteps;

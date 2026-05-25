@@ -258,7 +258,7 @@ const replayFromStep = async (stepNum) => {
 const fetchPerfBatches = async () => {
   loading.value = true
   try {
-    const res = await fetch(`/api/history/performance?userId=${authStore.userId || 1}`)
+    const res = await fetch(`/api/history/performance?userId=${authStore.userId || 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6'}`)
     const data = await res.json()
     // 补充每个批次的算法数和最优算法
     const batches = data.records || []

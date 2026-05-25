@@ -15,7 +15,7 @@ public class SessionState {
     private String currentRequestId;
     private String currentAlgorithm;
     private String currentMode;
-    private Long userId;
+    private String userId;
     /** 排序数据量、是否保存回放（用于保存到数据库） */
     private Integer dataSize;
     private Boolean saveReplay = false;

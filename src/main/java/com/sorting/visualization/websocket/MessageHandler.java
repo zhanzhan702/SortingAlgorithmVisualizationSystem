@@ -299,7 +299,7 @@ public class MessageHandler {
         try {
             SessionState state = sessionManager.getSessionState(sessionId);
             if (state != null) {
-                Long userId = state.getUserId() != null ? state.getUserId() : 1L;
+                String userId = state.getUserId() != null ? state.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
                 Long algoId = getAlgoId(request.getAlgorithm());
                 if (algoId != null) {
                     // 规范化数据类型（INT -> INTEGER 适配数据库 ENUM）
@@ -432,7 +432,7 @@ public class MessageHandler {
         try {
             SessionState state = sessionManager.getSessionState(sessionId);
             if (state == null) return;
-            Long userId = state.getUserId() != null ? state.getUserId() : 1L;
+            String userId = state.getUserId() != null ? state.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
             String algoName = state.getCurrentAlgorithm();
             Long algoId = getAlgoId(algoName);
             if (algoId == null) return;
@@ -475,7 +475,7 @@ public class MessageHandler {
             String algoName = s.getCurrentAlgorithm();
             Long algoId = getAlgoId(algoName);
             if (algoId == null) return;
-            Long userId = s.getUserId() != null ? s.getUserId() : 1L;
+            String userId = s.getUserId() != null ? s.getUserId() : "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6";
             int dataSize = s.getDataSize() != null ? s.getDataSize() : 0;
             experimentService.saveExperiment(
                     userId, algoId,

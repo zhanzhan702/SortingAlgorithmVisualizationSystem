@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class PerformanceBatch {
     @TableId(type = IdType.AUTO)
     private Long batchId;
-    private Long userId;
+    private String userId;
     private Integer dataSize;
     private String distribution;
     private String dataType;

@@ -29,7 +29,7 @@ public class HistoryController {
     /** 分页查询教学实验历史 */
     @GetMapping("/experiments")
     public Map<String, Object> getExperiments(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         Page<TeachingExperiment> result = experimentService.getUserExperiments(userId, page, size);
@@ -62,7 +62,7 @@ public class HistoryController {
     /** 分页查询性能测试批次 */
     @GetMapping("/performance")
     public Map<String, Object> getPerformanceBatches(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         Page<PerformanceBatch> p = new Page<>(page, size);

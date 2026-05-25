@@ -60,16 +60,16 @@ public class WebSocketController {
                 if (token.contains("&")) token = token.substring(0, token.indexOf("&"));
                 // 简单处理：有 token 即认为已登录，userId 默认 1
                 SessionState st = sessionManager.getSessionState(sessionId);
-                if (st != null) st.setUserId(1L);
+                if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
                 log.info("WebSocket 已认证: sessionId={}, token={}", sessionId, token);
             } else {
                 SessionState st = sessionManager.getSessionState(sessionId);
-                if (st != null) st.setUserId(1L); // 默认 userId=1
+                if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
             }
         } catch (Exception e) {
             log.warn("解析 token 失败: sessionId={}", sessionId, e);
             SessionState st = sessionManager.getSessionState(sessionId);
-            if (st != null) st.setUserId(1L);
+            if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
         }
 
         // 发送连接成功消息

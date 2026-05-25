@@ -24,5 +24,5 @@ public interface AlgorithmStatMapper extends BaseMapper<AlgorithmStat> {
     /** 调用存储过程生成用户报告（返回第一个结果集：基础统计） */
     @Select("CALL sp_user_report(#{userId})")
     @Options(statementType = StatementType.CALLABLE)
-    List<Map<String, Object>> callUserReport(Long userId);
+    List<Map<String, Object>> callUserReport(String userId);
 }

@@ -37,7 +37,7 @@ public class AdminController {
 
     /** 生成用户实验报告（存储过程） */
     @GetMapping("/report")
-    public List<Map<String, Object>> getReport(@RequestParam Long userId) {
+    public List<Map<String, Object>> getReport(@RequestParam String userId) {
         return algorithmStatMapper.callUserReport(userId);
     }
 

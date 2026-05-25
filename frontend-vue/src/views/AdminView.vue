@@ -78,7 +78,7 @@
       <section v-if="activeTab === 'report'">
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:15px">
           <label>用户ID:</label>
-          <input v-model.number="reportUserId" type="number" min="1" style="width:80px;padding:4px"/>
+          <input v-model="reportUserId" type="text" style="width:220px;padding:4px" placeholder="UUID"/>
           <button class="btn primary-btn" @click="loadReport()" style="width:auto">生成报告</button>
         </div>
         <div v-if="reportSummary" class="admin-section">
@@ -116,7 +116,7 @@ const ranking = ref([])
 
 // Activity & Report
 const activity = ref([])
-const reportUserId = ref(1)
+const reportUserId = ref('a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6')
 const reportSummary = ref(null)
 const reportFavorite = ref(null)
 const reportDetails = ref([])

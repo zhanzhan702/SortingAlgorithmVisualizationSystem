@@ -29,7 +29,7 @@ public class ExperimentService {
      */
     @Async
     @Transactional
-    public void saveExperiment(Long userId, Long algoId, Integer dataSize, Integer totalSteps,
+    public void saveExperiment(String userId, Long algoId, Integer dataSize, Integer totalSteps,
                                Integer comparisons, Integer swaps, Long timeMicros,
                                Integer intervalMs, String status) {
         TeachingExperiment exp = new TeachingExperiment();
@@ -52,7 +52,7 @@ public class ExperimentService {
      */
     @Async
     @Transactional
-    public void saveExperimentWithSteps(Long userId, Long algoId, Integer dataSize,
+    public void saveExperimentWithSteps(String userId, Long algoId, Integer dataSize,
                                          List<StepUpdate> steps, Integer intervalMs, String status) {
         if (steps == null || steps.isEmpty()) return;
 
@@ -90,7 +90,7 @@ public class ExperimentService {
     }
 
     /** 分页查询用户实验历史 */
-    public Page<TeachingExperiment> getUserExperiments(Long userId, int page, int size) {
+    public Page<TeachingExperiment> getUserExperiments(String userId, int page, int size) {
         Page<TeachingExperiment> p = new Page<>(page, size);
         return experimentMapper.selectPage(p,
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TeachingExperiment>()

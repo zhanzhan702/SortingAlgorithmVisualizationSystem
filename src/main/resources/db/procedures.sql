@@ -106,7 +106,7 @@ LEFT JOIN (
 
 DROP PROCEDURE IF EXISTS sp_user_report;
 DELIMITER //
-CREATE PROCEDURE sp_user_report(IN p_user_id BIGINT)
+CREATE PROCEDURE sp_user_report(IN p_user_id VARCHAR(32))
 BEGIN
     -- 结果集1：基础统计
     SELECT

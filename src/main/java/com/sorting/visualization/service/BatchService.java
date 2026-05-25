@@ -27,7 +27,7 @@ public class BatchService {
      */
     @Async
     @Transactional
-    public void saveBatch(Long userId, Integer dataSize, String distribution, String dataType,
+    public void saveBatch(String userId, Integer dataSize, String distribution, String dataType,
                           List<PerformanceResult> results, List<Long> algoIds) {
         // 保存批次主表
         PerformanceBatch batch = new PerformanceBatch();

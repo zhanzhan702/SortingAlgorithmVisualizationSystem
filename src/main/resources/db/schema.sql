@@ -13,7 +13,7 @@ USE sorting_visualization;
 -- 1. 用户表
 -- ----------------------------
 CREATE TABLE users (
-    user_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id       VARCHAR(32)  PRIMARY KEY COMMENT 'UUID(32位无横线)',
     username      VARCHAR(50)  NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role          ENUM('student','teacher','admin') DEFAULT 'student',
@@ -43,7 +43,7 @@ CREATE TABLE algorithms (
 -- ----------------------------
 CREATE TABLE teaching_experiments (
     exp_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id      BIGINT NOT NULL,
+    user_id      VARCHAR(32) NOT NULL,
     algo_id      BIGINT NOT NULL,
     data_size    INT    NOT NULL,
     total_steps  INT    DEFAULT 0,
@@ -79,7 +79,7 @@ CREATE TABLE experiment_steps (
 -- ----------------------------
 CREATE TABLE performance_batches (
     batch_id     BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id      BIGINT NOT NULL,
+    user_id      VARCHAR(32) NOT NULL,
     data_size    INT    NOT NULL,
     distribution VARCHAR(30),
     data_type    ENUM('INTEGER','DOUBLE','PERSON') DEFAULT 'INTEGER',
