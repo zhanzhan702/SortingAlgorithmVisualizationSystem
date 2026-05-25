@@ -32,8 +32,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
   if (to.meta.requiresAuth && !token) {
     next('/login')
+  } else if (to.meta.role && to.meta.role !== role) {
+    next('/') // 非管理员重定向到首页
   } else {
     next()
   }

@@ -8,7 +8,9 @@ USE sorting_visualization;
 -- 管理员用户（密码: admin123，BCrypt 加密）
 -- ----------------------------
 INSERT INTO users (user_id, username, password_hash, role) VALUES
-('a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6', 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'admin');
+('a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6', 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'admin'),
+('b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7', 'teacher', 'teacher123', 'teacher'),
+('c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8', 'student', 'student123', 'student');
 
 -- ----------------------------
 -- 6 种排序算法元数据
