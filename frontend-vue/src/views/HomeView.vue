@@ -82,6 +82,6 @@ const authStore = useAuthStore()
 
 onMounted(() => {
     algorithmStore.updatePseudocode()
-    connect(`ws://${window.location.host}/websocket`, authStore.token)
+    connect(`ws://localhost:8080/websocket`, authStore.token)
 })
 </script>
