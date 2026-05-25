@@ -10,7 +10,7 @@
       <button :class="['tab', { active: activeTab === 'ranking' }]" @click="activeTab = 'ranking'">综合排名</button>
       <button :class="['tab', { active: activeTab === 'activity' }]" @click="loadActivity(); activeTab = 'activity'">用户活跃</button>
       <button :class="['tab', { active: activeTab === 'report' }]" @click="loadReport(); activeTab = 'report'">用户报告</button>
-      <button :class="['tab', { active: activeTab === 'backup' }]" @click="activeTab = 'backup'">数据库备份</button>
+      <button :class="['tab', { active: activeTab === 'backup' }]" @click="activeTab = 'backup'" v-if="authStore.isAdmin">数据库备份</button>
     </div>
 
     <div class="admin-content">
@@ -106,7 +106,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useAuthStore } from '../stores/auth'
 
+const authStore = useAuthStore()
 const activeTab = ref('stats')
 const algoMap = { 1:'冒泡排序',2:'快速排序',3:'直接插入排序',4:'希尔排序',5:'堆排序',6:'归并排序' }
 

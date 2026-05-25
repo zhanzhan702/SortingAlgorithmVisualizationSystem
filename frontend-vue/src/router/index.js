@@ -21,7 +21,7 @@ const routes = [
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminView.vue'),
-    meta: { requiresAuth: true, role: 'admin' }
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
   }
 ]
 
@@ -35,8 +35,8 @@ router.beforeEach((to, from, next) => {
   const role = localStorage.getItem('role')
   if (to.meta.requiresAuth && !token) {
     next('/login')
-  } else if (to.meta.role && to.meta.role !== role) {
-    next('/') // 非管理员重定向到首页
+  } else if (to.meta.roles && !to.meta.roles.includes(role)) {
+    next('/') // 无权限重定向到首页
   } else {
     next()
   }

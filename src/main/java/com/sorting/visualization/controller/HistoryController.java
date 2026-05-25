@@ -46,6 +46,22 @@ public class HistoryController {
         return experimentService.getExperimentSteps(expId);
     }
 
+    /** 分页查询所有用户的教学实验（教师用） */
+    @GetMapping("/experiments/all")
+    public Map<String, Object> getAllExperiments(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<TeachingExperiment> p = new Page<>(page, size);
+        Page<TeachingExperiment> result = experimentMapper.selectPage(p,
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TeachingExperiment>()
+                        .orderByDesc(TeachingExperiment::getStartedAt));
+        Map<String, Object> map = new HashMap<>();
+        map.put("records", result.getRecords());
+        map.put("total", result.getTotal());
+        map.put("page", page);
+        return map;
+    }
+
     /** 查询时间段内统计 */
     @GetMapping("/stats")
     public Map<String, Object> getStats(@RequestParam String start, @RequestParam String end,

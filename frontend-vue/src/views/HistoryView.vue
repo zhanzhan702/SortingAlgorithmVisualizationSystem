@@ -9,12 +9,11 @@
 
     <!-- Tab 切换 -->
     <div class="tab-bar">
-      <button :class="['tab', { active: activeTab === 'teaching' }]" @click="switchTab('teaching')">
-        教学记录
-      </button>
-      <button :class="['tab', { active: activeTab === 'performance' }]" @click="switchTab('performance')">
-        性能记录
-      </button>
+      <button :class="['tab', { active: activeTab === 'teaching' }]" @click="switchTab('teaching')">教学记录</button>
+      <button :class="['tab', { active: activeTab === 'performance' }]" @click="switchTab('performance')">性能记录</button>
+      <label v-if="authStore.isTeacher" class="all-toggle" style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer">
+        <input type="checkbox" v-model="showAll" @change="fetchTeachingData" /> 查看全部用户实验
+      </label>
     </div>
 
     <div class="history-content">
@@ -173,6 +172,7 @@ const algoCodeMap = { 1: 'bubble', 2: 'quick', 3: 'insertion', 4: 'shell', 5: 'h
 
 const activeTab = ref('teaching')
 const loading = ref(false)
+const showAll = ref(false)
 
 // --- 教学记录 ---
 const showDetail = ref(false)
@@ -190,21 +190,42 @@ const getAlgoName = (id) => algoIdMap[id] || `算法#${id}`
 const statusLabel = (s) => ({ COMPLETED: '已完成', STOPPED: '已停止', ERROR: '异常' }[s] || s)
 const formatTime = (t) => t ? new Date(t).toLocaleString() : ''
 
+const fetchTeachingData = () => {
+  if (showAll.value) fetchAllExperiments()
+  else if (authStore.userId) historyStore.fetchExperiments(authStore.userId)
+}
+
+const fetchAllExperiments = async () => {
+  loading.value = true
+  try {
+    const res = await fetch('/api/history/experiments/all?page=1&size=20')
+    const data = await res.json()
+    historyStore.experiments = data.records || []
+    historyStore.total = data.total || 0
+    historyStore.page = 1
+  } catch(e) { console.error(e) }
+  loading.value = false
+}
+
 onMounted(() => {
-  if (authStore.userId) {
-    historyStore.fetchExperiments(authStore.userId)
-    fetchPerfBatches()
-  }
+  fetchTeachingData()
+  fetchPerfBatches()
 })
 
 const switchTab = (tab) => {
   activeTab.value = tab
   if (tab === 'performance') fetchPerfBatches()
-  else if (authStore.userId) historyStore.fetchExperiments(authStore.userId)
+  else fetchTeachingData()
 }
 
-const prevPage = () => historyStore.fetchExperiments(authStore.userId, historyStore.page - 1)
-const nextPage = () => historyStore.fetchExperiments(authStore.userId, historyStore.page + 1)
+const prevPage = () => {
+  if (showAll.value) return
+  historyStore.fetchExperiments(authStore.userId, historyStore.page - 1)
+}
+const nextPage = () => {
+  if (showAll.value) return
+  historyStore.fetchExperiments(authStore.userId, historyStore.page + 1)
+}
 
 // 教学详情
 const viewDetail = async (exp) => {
