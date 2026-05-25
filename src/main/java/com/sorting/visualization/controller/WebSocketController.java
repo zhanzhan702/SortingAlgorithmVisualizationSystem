@@ -51,21 +51,22 @@ public class WebSocketController {
             sessionManager.addSession(sessionId, session);
         }
 
-        // 解析 token 参数，默认 userId=1（未登录用户）
+        // 解析 token 参数，提取 userId
         try {
             URI uri = session.getRequestURI();
             String query = uri.getQuery();
+            String userId = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"; // 默认
             if (query != null && query.contains("token=")) {
                 String token = query.substring(query.indexOf("token=") + 6);
                 if (token.contains("&")) token = token.substring(0, token.indexOf("&"));
-                // 简单处理：有 token 即认为已登录，userId 默认 1
-                SessionState st = sessionManager.getSessionState(sessionId);
-                if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
-                log.info("WebSocket 已认证: sessionId={}, token={}", sessionId, token);
-            } else {
-                SessionState st = sessionManager.getSessionState(sessionId);
-                if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
+                // 从 "token-{userId}" 提取 userId
+                if (token.startsWith("token-") && token.length() > 6) {
+                    userId = token.substring(6);
+                }
+                log.info("WebSocket 已认证: sessionId={}, userId={}", sessionId, userId);
             }
+            SessionState st = sessionManager.getSessionState(sessionId);
+            if (st != null) st.setUserId(userId);
         } catch (Exception e) {
             log.warn("解析 token 失败: sessionId={}", sessionId, e);
             SessionState st = sessionManager.getSessionState(sessionId);
