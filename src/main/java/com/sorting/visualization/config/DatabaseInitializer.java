@@ -45,10 +45,12 @@ public class DatabaseInitializer implements CommandLineRunner {
             try { jdbcTemplate.execute("ALTER TABLE teaching_experiments DROP FOREIGN KEY teaching_experiments_ibfk_1"); } catch (Exception ignored) {}
             try { jdbcTemplate.execute("ALTER TABLE performance_batches DROP FOREIGN KEY performance_batches_ibfk_1"); } catch (Exception ignored) {}
             try { jdbcTemplate.execute("ALTER TABLE algorithm_stats DROP FOREIGN KEY algorithm_stats_ibfk_1"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("ALTER TABLE datasets DROP FOREIGN KEY datasets_ibfk_1"); } catch (Exception ignored) {}
 
-            // 2. 先改外键列类型为 VARCHAR(32)（否则无法存入UUID）
+            // 2. 先改所有外键列类型为 VARCHAR(32)
             jdbcTemplate.execute("ALTER TABLE teaching_experiments MODIFY user_id VARCHAR(32) NOT NULL");
             jdbcTemplate.execute("ALTER TABLE performance_batches MODIFY user_id VARCHAR(32) NOT NULL");
+            try { jdbcTemplate.execute("ALTER TABLE datasets MODIFY creator_id VARCHAR(32)"); } catch (Exception ignored) {}
 
             // 3. 创建映射表并更新FK值
             jdbcTemplate.execute("CREATE TEMPORARY TABLE IF NOT EXISTS user_id_map AS " +
