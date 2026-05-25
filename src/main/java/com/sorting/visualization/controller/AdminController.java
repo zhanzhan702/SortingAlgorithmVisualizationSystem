@@ -57,4 +57,15 @@ public class AdminController {
     public Map<String, Object> listBackups() {
         return Map.of("files", backupService.listBackups());
     }
+
+    /** 清空实验数据（保留用户和算法） */
+    @PostMapping("/cleanup")
+    public Map<String, Object> cleanup() {
+        try {
+            backupService.truncateExperimentData();
+            return Map.of("success", true, "message", "实验数据已清空，users和algorithms保留");
+        } catch (Exception e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
+    }
 }
