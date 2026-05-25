@@ -1,83 +1,194 @@
-﻿# SortingAlgorithmVisualizationSystem
+﻿# 排序算法可视化教学与实验数据管理平台
 
-一个支持教学演示和性能测试的排序算法可视化系统，通过WebSocket实现前后端实时通信，直观展示多种排序算法的执行过程和性能对比。
+一个支持教学演示和性能测试的排序算法可视化系统——**数据库课程设计项目**。
+
+通过 WebSocket 实现前后端实时通信，直观展示 6 种经典排序算法的执行过程与性能对比。
+集成 **MySQL 8.0 + MyBatis-Plus**，完整实现触发器、视图、存储过程等数据库对象。
 
 ## 技术栈
 
 ### 后端
-- **Java**: 17
-- **Spring Boot**: 3.1.5
-- **WebSocket**: Jakarta WebSocket API 2.1.0
-- **构建工具**: Maven
+| 技术 | 版本 |
+|------|------|
+| Java | 17 |
+| Spring Boot | 4.0.6 |
+| MyBatis-Plus | 3.5.15 |
+| MySQL | 8.0 |
+| Druid 连接池 | 1.2.20 |
+| WebSocket | Jakarta WebSocket API |
+| Lombok | 1.18.36 |
+| 构建工具 | Maven |
 
 ### 前端
-- **Vue.js**: 3.4.0
-- **Vite**: 5.0.0
-- **状态管理**: Pinia 2.1.7
-- **图表库**: Chart.js 4.4.0
+| 技术 | 版本 |
+|------|------|
+| Vue.js | 3.4 |
+| Vite | 5.4 |
+| Pinia（状态管理） | 2.1.7 |
+| Vue Router（路由） | 4.x |
+| Chart.js（图表） | 4.4 |
+
+### 数据库对象
+| 类型 | 名称 | 用途 |
+|------|------|------|
+| 表 | 6 张 | users, algorithms, teaching_experiments, experiment_steps, performance_batches, batch_details |
+| 触发器 | 2 个 | 自动维护 algorithm_stats 汇总表 |
+| 视图 | 2 个 | v_algorithm_ranking, v_user_activity |
+| 存储过程 | 1 个 | sp_user_report(userId) |
+| 主键策略 | UUID(32位) | users 表使用 VARCHAR(32) + MyBatis-Plus ASSIGN_UUID |
 
 ## 功能特性
 
-- **多种排序算法支持**: 包括冒泡排序、快速排序、归并排序等 6 种经典算法
-- **实时可视化**: 通过 WebSocket 实时展示排序过程，支持 SVG 增量渲染
-- **走查模式**: 支持暂停/继续、停止、单步执行，精确控制排序过程
-- **暂停调参**: 暂停时可调整步进间隔，恢复后立即生效
-- **性能对比**: 提供算法执行时间、比较次数、交换次数等性能指标及 Chart.js 图表
-- **数据输入**: 支持随机数据生成、手动输入或文件导入
-- **多种数据类型**: 支持整数、浮点数、Person 结构体
-- **教学辅助**: 显示算法伪代码（从后端 API 获取）和详细说明
-- **响应式设计**: 4 层断点适配不同屏幕尺寸（1100px / 900px / 768px / 480px）
+### 教学模式
+- **6 种排序算法**: 冒泡、快速、直接插入、希尔、堆、二路归并
+- **实时可视化**: WebSocket 推送每一步排序状态，SVG 柱状图渲染
+- **走查控制**: 暂停/继续、停止、单步执行
+- **暂停调参**: 暂停时可动态调整步进间隔
+- **步骤快照**: 勾选"保存回放"后，每一步数据存入 experiment_steps 表
+- **伪代码展示**: 从后端 API 获取算法伪代码
+- **多种数据类型**: 整数、浮点数、Person 结构体
+- **多种数据分布**: 随机、有序、逆序、大量重复、正态分布
 
-## 安装和运行
+### 性能模式
+- **6 算法对比**: 依次执行所有算法，Chart.js 柱状图展示
+- **性能指标**: 运行时间(µs)、比较次数、交换次数
+- **结果持久化**: 自动保存到 performance_batches + batch_details 表
 
-### 环境要求
-- Java 17 或更高版本
-- Node.js 16 或更高版本
-- Maven 3.6 或更高版本
+### 实验历史
+- **教学记录**: 分页查看历史实验，支持详情弹窗（含步骤列表）
+- **性能记录**: 批次列表 + 排名详情弹窗
+- **回放功能**: 加载历史实验数据到可视化页面
+- **教师模式**: 可切换查看"全部用户"的实验记录
 
-### 后端运行
-1. 进入项目根目录
-2. 运行 Maven 构建：
-   ```bash
-   mvn clean install
-   ```
-3. 启动 Spring Boot 应用：
-   ```bash
-   mvn spring-boot:run
-   ```
-   或直接运行 JAR 文件：
-   ```bash
-   java -jar target/visualization-backend-1.0.0.jar
-   ```
+### 管理后台
+- **算法统计**: 触发器自动汇聚的教学/性能平均数据
+- **综合排名**: v_algorithm_ranking 视图——按性能耗时排序
+- **用户活跃**: v_user_activity 视图——用户活动汇总
+- **用户报告**: sp_user_report 存储过程——生成单用户综合报告
+- **数据库备份**: 一键导出 SQL 备份文件
 
-后端服务将在 `http://localhost:8080` 启动。
+### 用户权限
+| 功能 | Student | Teacher | Admin |
+|------|:---:|:---:|:---:|
+| 运行排序实验 | ✅ | ✅ | ✅ |
+| 查看自己实验历史 | ✅ | ✅ | ✅ |
+| 查看全部用户实验 | ❌ | ✅ | ✅ |
+| 管理后台（统计/排名/活跃） | ❌ | ✅ | ✅ |
+| 数据库备份 | ❌ | ❌ | ✅ |
 
-### 前端运行
-1. 进入前端目录：
-   ```bash
-   cd frontend-vue
-   ```
-2. 安装依赖：
-   ```bash
-   npm install
-   ```
-3. 启动开发服务器：
-   ```bash
-   npm run dev
-   ```
+## 环境要求
 
-前端应用将在 `http://localhost:5173` 启动。
+- Java 17+
+- Node.js 16+
+- Maven 3.6+
+- MySQL 8.0+
 
-### 完整应用访问
-启动前后端后，推荐在浏览器中访问 `http://localhost:5173` 使用前端开发服务器（热更新），或访问 `http://localhost:8080` 使用后端内置的静态资源。
+## 快速开始
+
+### 1. 创建数据库
+
+```sql
+CREATE DATABASE IF NOT EXISTS sorting_visualization
+  DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;
+```
+
+### 2. 初始化表结构（首次）
+
+```bash
+mysql -u root -p sorting_visualization < src/main/resources/db/schema.sql
+mysql -u root -p sorting_visualization < src/main/resources/db/data.sql
+mysql -u root -p sorting_visualization < src/main/resources/db/procedures.sql
+```
+
+> 或跳过手动初始化：应用首次启动时 `DatabaseInitializer` 会自动创建触发器/视图/存储过程，并执行 UUID 迁移。
+
+### 3. 配置数据库密码
+
+编辑 `src/main/resources/application.properties`：
+
+```properties
+spring.datasource.password=你的MySQL密码
+```
+
+### 4. 构建并启动
+
+```bash
+# 构建前端到 src/main/resources/static/
+cd frontend-vue && npm install && npm run build && cd ..
+
+# 启动后端（含前端静态资源）
+mvn spring-boot:run
+```
+
+浏览器访问 **`http://localhost:8080`** 即可。
+
+## 预设账号
+
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| `admin` | `admin123` | 管理员 |
+| `teacher` | `teacher123` | 教师 |
+| `student` | `student123` | 学生 |
 
 ## 项目结构
 
 ```
 SortingAlgorithmVisualizationSystem/
 ├── src/main/java/com/sorting/visualization/
-│   ├── algorithm/               # 排序算法实现
-│   │   ├── AlgorithmConstants.java   # 算法常量（消除硬编码）
+│   ├── algorithm/          # 6 种排序算法实现
+│   ├── config/             # CORS、WebSocket、DatabaseInitializer 配置
+│   ├── controller/         # REST API 控制器
+│   ├── entity/             # 数据库实体（User UUID）
+│   ├── mapper/             # MyBatis-Plus Mapper
+│   ├── model/              # 请求/响应 DTO
+│   ├── service/            # 业务逻辑（Experiment/Batch/User/Backup）
+│   ├── util/               # JSON、数据验证等工具
+│   └── websocket/          # WebSocket 会话管理 + 消息处理器
+├── src/main/resources/
+│   ├── application.properties  # 应用配置
+│   ├── db/                     # SQL 脚本
+│   │   ├── schema.sql          # 建表 DDL
+│   │   ├── data.sql            # 初始数据
+│   │   ├── procedures.sql      # 触发器+视图+存储过程
+│   │   └── migrate_to_uuid.sql # UUID 迁移脚本
+│   └── static/                 # 前端构建产物
+└── frontend-vue/
+    ├── src/
+    │   ├── components/     # Vue 组件
+    │   ├── composables/    # 组合式函数（WebSocket）
+    │   ├── stores/         # Pinia 状态管理
+    │   ├── utils/          # 工具函数
+    │   ├── views/          # 页面视图
+    │   └── router/         # 路由配置（含角色守卫）
+    └── vite.config.js
+```
+
+## API 端点
+
+### 认证
+- `POST /api/auth/register` — 注册
+- `POST /api/auth/login` — 登录
+
+### 历史记录
+- `GET /api/history/experiments?userId=` — 用户实验
+- `GET /api/history/experiments/all` — 全部实验（教师）
+- `GET /api/history/experiments/{id}/steps` — 步骤快照
+- `GET /api/history/performance?userId=` — 性能批次
+- `GET /api/history/performance/{id}/details` — 批次明细
+
+### 管理后台
+- `GET /api/admin/stats` — 算法统计（触发器）
+- `GET /api/admin/ranking` — 综合排名（视图）
+- `GET /api/admin/activity` — 用户活跃（视图）
+- `GET /api/admin/report?userId=` — 用户报告（存储过程）
+- `POST /api/admin/backup` — 数据库备份
+
+### WebSocket
+- `ws://localhost:8080/websocket?token=token-{userId}`
+
+## License
+
+MIT
 │   │   ├── SortingAlgorithm.java     # 排序接口
 │   │   ├── AbstractSortingAlgorithm.java  # 算法基类
 │   │   ├── ComparatorFactory.java    # 比较器工厂
