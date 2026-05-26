@@ -31,10 +31,10 @@
 ### 数据库对象
 | 类型 | 名称 | 用途 |
 |------|------|------|
-| 表 | 6 张 | users, algorithms, teaching_experiments, experiment_steps, performance_batches, batch_details |
-| 触发器 | 2 个 | 自动维护 algorithm_stats 汇总表 |
-| 视图 | 2 个 | v_algorithm_ranking, v_user_activity |
-| 存储过程 | 1 个 | sp_user_report(userId) |
+| 表 | 7 张 | users, algorithms, teaching_experiments, experiment_steps, performance_batches, batch_details, algorithm_stats |
+| 触发器 | 2 个 | trg_after_experiment_insert, trg_after_batch_detail_insert — 自动维护 algorithm_stats |
+| 视图 | 2 个 | v_algorithm_ranking（排名）, v_user_activity（活跃度） |
+| 存储过程 | 1 个 | sp_user_report(userId) — 用户综合报告（教学+性能，3个结果集） |
 | 主键策略 | UUID(32位) | users 表使用 VARCHAR(32) + MyBatis-Plus ASSIGN_UUID |
 
 ## 功能特性
@@ -61,11 +61,13 @@
 - **教师模式**: 可切换查看"全部用户"的实验记录
 
 ### 管理后台
-- **算法统计**: 触发器自动汇聚的教学/性能平均数据
-- **综合排名**: v_algorithm_ranking 视图——按性能耗时排序
-- **用户活跃**: v_user_activity 视图——用户活动汇总
-- **用户报告**: sp_user_report 存储过程——生成单用户综合报告
-- **数据库备份**: 一键导出 SQL 备份文件
+- **算法统计**：合并展示教学/性能双维度指标 + 时/元素 + 速度排名（合并原"综合排名"tab）
+- **用户活跃**: v_user_activity 视图 — 用户活动汇总
+- **用户报告**: sp_user_report 存储过程 — 教学+性能完整报告 + 算法明细对比表
+- **数据库备份**: 一键导出 SQL 备份文件（含 TRUNCATE + 反引号列名 + utf8mb4），一行命令恢复
+  ```bash
+  mysql -u root -p --default-character-set=utf8mb4 sorting_visualization < backups/xxx.sql
+  ```
 
 ### 用户权限
 | 功能 | Student | Teacher | Admin |
@@ -189,35 +191,6 @@ SortingAlgorithmVisualizationSystem/
 ## License
 
 MIT
-│   │   ├── SortingAlgorithm.java     # 排序接口
-│   │   ├── AbstractSortingAlgorithm.java  # 算法基类
-│   │   ├── ComparatorFactory.java    # 比较器工厂
-│   │   └── impl/                     # 6 种算法实现
-│   ├── config/                  # 配置类
-│   │   ├── CorsConfig.java
-│   │   └── WebSocketConfig.java
-│   ├── controller/              # REST 控制器
-│   │   ├── HealthController.java
-│   │   └── WebSocketController.java
-│   ├── model/                   # 数据模型
-│   │   ├── Highlight.java
-│   │   ├── Person.java
-│   │   ├── request/             # 请求模型
-│   │   └── response/            # 响应模型
-│   ├── service/                 # 业务逻辑
-│   │   └── SortService.java
-│   ├── util/                    # 工具类
-│   │   ├── DataValidator.java
-│   │   ├── JsonUtil.java
-│   │   └── PseudoCodeUtil.java
-│   └── websocket/               # WebSocket 处理器
-│       ├── MessageHandler.java      # 消息分发与处理
-│       ├── SessionState.java        # 会话状态（含暂停/单步控制）
-│       └── WebSocketSessionManager.java  # 会话管理
-├── src/main/resources/
-│   ├── application.properties   # 应用配置
-│   └── static/                  # 前端静态文件
-├── frontend-vue/                # 前端 Vue.js 项目
 │   ├── src/
 │   │   ├── components/          # Vue 组件
 │   │   │   ├── ControlSection.vue    # 控制面板（含暂停/继续/停止/单步）
