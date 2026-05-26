@@ -1276,11 +1276,6 @@ body {
   padding-right: 5px; /* 给滚动条留空间 */
 }
 
-.performance-canvas {
-  max-height: 400px;
-  width: 100%;
-}
-
 /* 性能表格容器 */
 .performance-table-container {
   height: auto;

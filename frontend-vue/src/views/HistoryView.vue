@@ -326,7 +326,7 @@ const viewPerfDetail = async (batch) => {
 .tab.active { background: white; color: #3498db; font-weight: 600; border-color: #3498db; }
 .tab:hover:not(.active) { background: #e9ecef; }
 
-.history-content { padding: 0 20px 20px; max-width: 1300px; margin: 0 auto; }
+.history-content { padding: 0 20px 20px; max-width: 1300px; margin: 0 auto; max-height: calc(100vh - 200px); overflow-y: auto; }
 .history-table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .history-table th, .history-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.82rem; }
 .history-table th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
