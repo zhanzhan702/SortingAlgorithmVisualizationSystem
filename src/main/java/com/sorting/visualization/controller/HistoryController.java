@@ -75,17 +75,19 @@ public class HistoryController {
         return map;
     }
 
-    /** 分页查询性能测试批次 */
+    /** 分页查询性能测试批次（userId 为空时查询全部） */
     @GetMapping("/performance")
     public Map<String, Object> getPerformanceBatches(
-            @RequestParam String userId,
+            @RequestParam(defaultValue = "") String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         Page<PerformanceBatch> p = new Page<>(page, size);
-        Page<PerformanceBatch> result = performanceBatchMapper.selectPage(p,
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<PerformanceBatch>()
-                        .eq(PerformanceBatch::getUserId, userId)
-                        .orderByDesc(PerformanceBatch::getCreatedAt));
+        var wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<PerformanceBatch>()
+                .orderByDesc(PerformanceBatch::getCreatedAt);
+        if (userId != null && !userId.isEmpty() && !"all".equals(userId)) {
+            wrapper.eq(PerformanceBatch::getUserId, userId);
+        }
+        Page<PerformanceBatch> result = performanceBatchMapper.selectPage(p, wrapper);
         Map<String, Object> map = new HashMap<>();
         map.put("records", result.getRecords());
         map.put("total", result.getTotal());

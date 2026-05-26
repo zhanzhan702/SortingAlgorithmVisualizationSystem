@@ -12,7 +12,7 @@
       <button :class="['tab', { active: activeTab === 'teaching' }]" @click="switchTab('teaching')">教学记录</button>
       <button :class="['tab', { active: activeTab === 'performance' }]" @click="switchTab('performance')">性能记录</button>
       <label v-if="authStore.isTeacher" class="all-toggle" style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer">
-        <input type="checkbox" v-model="showAll" @change="fetchTeachingData" /> 查看全部用户实验
+        <input type="checkbox" v-model="showAll" @change="onShowAllChange" /> 查看全部用户实验
       </label>
     </div>
 
@@ -195,6 +195,11 @@ const fetchTeachingData = () => {
   else if (authStore.userId) historyStore.fetchExperiments(authStore.userId)
 }
 
+const onShowAllChange = () => {
+  if (activeTab.value === 'teaching') fetchTeachingData()
+  else fetchPerfBatches()
+}
+
 const fetchAllExperiments = async () => {
   loading.value = true
   try {
@@ -279,7 +284,8 @@ const replayFromStep = async (stepNum) => {
 const fetchPerfBatches = async () => {
   loading.value = true
   try {
-    const res = await fetch(`/api/history/performance?userId=${authStore.userId || ''}`)
+    const userIdParam = showAll.value ? 'all' : (authStore.userId || '')
+    const res = await fetch(`/api/history/performance?userId=${userIdParam}`)
     const data = await res.json()
     // 补充每个批次的算法数和最优算法
     const batches = data.records || []
