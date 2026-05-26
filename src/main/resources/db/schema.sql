@@ -98,7 +98,7 @@ CREATE TABLE batch_details (
     comparisons  INT    DEFAULT 0,
     swaps        INT    DEFAULT 0,
     time_micros  BIGINT DEFAULT 0,
-    rank         INT    COMMENT '批次内排名（按耗时升序）',
+    `rank`       INT    COMMENT '批次内排名（按耗时升序）',
     FOREIGN KEY (batch_id) REFERENCES performance_batches(batch_id) ON DELETE CASCADE,
     FOREIGN KEY (algo_id)  REFERENCES algorithms(algo_id)         ON DELETE RESTRICT,
     INDEX idx_detail_batch (batch_id)

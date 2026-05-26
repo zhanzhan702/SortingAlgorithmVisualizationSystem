@@ -55,7 +55,7 @@ public class WebSocketController {
         try {
             URI uri = session.getRequestURI();
             String query = uri.getQuery();
-            String userId = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"; // 默认
+            String userId = null;
             if (query != null && query.contains("token=")) {
                 String token = query.substring(query.indexOf("token=") + 6);
                 if (token.contains("&")) token = token.substring(0, token.indexOf("&"));
@@ -70,7 +70,7 @@ public class WebSocketController {
         } catch (Exception e) {
             log.warn("解析 token 失败: sessionId={}", sessionId, e);
             SessionState st = sessionManager.getSessionState(sessionId);
-            if (st != null) st.setUserId("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
+            if (st != null) st.setUserId(null);
         }
 
         // 发送连接成功消息

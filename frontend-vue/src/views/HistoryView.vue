@@ -69,7 +69,7 @@
         </tbody>
       </table>
 
-      <p v-if="loading">加载中...</p>
+      <p v-if="(activeTab === 'teaching' && historyStore.loading && !historyStore.experiments.length) || (activeTab === 'performance' && loading && !perfBatches.length)">加载中...</p>
       <p v-else-if="activeTab === 'teaching' && !historyStore.experiments.length">暂无教学实验记录</p>
       <p v-else-if="activeTab === 'performance' && !perfBatches.length">暂无性能测试记录</p>
 
@@ -279,7 +279,7 @@ const replayFromStep = async (stepNum) => {
 const fetchPerfBatches = async () => {
   loading.value = true
   try {
-    const res = await fetch(`/api/history/performance?userId=${authStore.userId || 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6'}`)
+    const res = await fetch(`/api/history/performance?userId=${authStore.userId || ''}`)
     const data = await res.json()
     // 补充每个批次的算法数和最优算法
     const batches = data.records || []

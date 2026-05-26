@@ -124,21 +124,47 @@ DROP PROCEDURE IF EXISTS sp_user_report;
 DELIMITER //
 CREATE PROCEDURE sp_user_report(IN p_user_id VARCHAR(32))
 BEGIN
-    -- 结果集1：基础统计
+    -- 结果集1：综合统计（教学模式 + 性能模式，子查询避免笛卡尔积）
     SELECT
         u.username,
-        COUNT(DISTINCT te.exp_id)                               AS total_experiments,
-        SUM(CASE WHEN te.status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN te.status = 'STOPPED'   THEN 1 ELSE 0 END) AS stopped,
-        ROUND(AVG(te.comparisons), 0)                            AS avg_comparisons,
-        ROUND(AVG(te.swaps), 0)                                  AS avg_swaps,
-        ROUND(AVG(te.time_micros), 0)                            AS avg_time_us
+        u.role,
+        COALESCE(ts.teach_total, 0)      AS teach_total,
+        COALESCE(ts.teach_completed, 0)   AS teach_completed,
+        COALESCE(ts.teach_stopped, 0)     AS teach_stopped,
+        COALESCE(ts.teach_avg_cmp, 0)     AS teach_avg_cmp,
+        COALESCE(ts.teach_avg_swp, 0)     AS teach_avg_swp,
+        COALESCE(ts.teach_avg_us, 0)      AS teach_avg_us,
+        COALESCE(ps.perf_batches, 0)      AS perf_batches,
+        COALESCE(ps.perf_details, 0)      AS perf_details,
+        COALESCE(ps.perf_avg_us, 0)       AS perf_avg_us,
+        COALESCE(ps.perf_avg_cmp, 0)      AS perf_avg_cmp,
+        COALESCE(ps.perf_avg_swp, 0)      AS perf_avg_swp
     FROM users u
-    LEFT JOIN teaching_experiments te ON u.user_id = te.user_id
-    WHERE u.user_id = p_user_id
-    GROUP BY u.user_id, u.username;
+    LEFT JOIN (
+        SELECT user_id,
+            COUNT(DISTINCT exp_id)                                AS teach_total,
+            SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS teach_completed,
+            SUM(CASE WHEN status = 'STOPPED'   THEN 1 ELSE 0 END) AS teach_stopped,
+            ROUND(AVG(comparisons), 0)                            AS teach_avg_cmp,
+            ROUND(AVG(swaps), 0)                                  AS teach_avg_swp,
+            ROUND(AVG(time_micros), 0)                            AS teach_avg_us
+        FROM teaching_experiments
+        GROUP BY user_id
+    ) ts ON u.user_id = ts.user_id
+    LEFT JOIN (
+        SELECT pb.user_id,
+            COUNT(DISTINCT pb.batch_id)    AS perf_batches,
+            COUNT(bd.detail_id)            AS perf_details,
+            ROUND(AVG(bd.time_micros), 0)  AS perf_avg_us,
+            ROUND(AVG(bd.comparisons), 0)  AS perf_avg_cmp,
+            ROUND(AVG(bd.swaps), 0)        AS perf_avg_swp
+        FROM performance_batches pb
+        JOIN batch_details bd ON pb.batch_id = bd.batch_id
+        GROUP BY pb.user_id
+    ) ps ON u.user_id = ps.user_id
+    WHERE u.user_id = p_user_id;
 
-    -- 结果集2：最常用算法
+    -- 结果集2：教学模式最常用算法
     SELECT
         a.algo_name AS favorite_algorithm,
         COUNT(*)    AS use_count
@@ -149,17 +175,46 @@ BEGIN
     ORDER BY use_count DESC
     LIMIT 1;
 
-    -- 结果集3：各算法详细统计
+    -- 结果集3：各算法综合统计（教学 + 性能）
     SELECT
         a.algo_name,
-        COUNT(*)                     AS times_used,
-        ROUND(AVG(te.comparisons),0) AS avg_cmp,
-        ROUND(AVG(te.swaps),0)       AS avg_swp,
-        ROUND(AVG(te.time_micros),0) AS avg_us
-    FROM teaching_experiments te
-    JOIN algorithms a ON te.algo_id = a.algo_id
-    WHERE te.user_id = p_user_id
-    GROUP BY a.algo_id, a.algo_name
-    ORDER BY times_used DESC;
+        -- 教学维度
+        COALESCE(ts.teach_times, 0)        AS teach_times,
+        COALESCE(ts.teach_avg_cmp, 0)      AS teach_avg_cmp,
+        COALESCE(ts.teach_avg_swp, 0)      AS teach_avg_swp,
+        COALESCE(ts.teach_avg_us, 0)       AS teach_avg_us,
+        -- 性能维度
+        COALESCE(ps.perf_times, 0)         AS perf_times,
+        COALESCE(ps.perf_avg_us, 0)        AS perf_avg_us,
+        COALESCE(ps.perf_avg_cmp, 0)       AS perf_avg_cmp,
+        COALESCE(ps.perf_avg_swp, 0)       AS perf_avg_swp,
+        -- 性价比
+        CASE WHEN ts.teach_avg_us > 0 AND ps.perf_avg_us > 0
+             THEN ROUND(ps.perf_avg_us / ts.teach_avg_us, 2)
+             ELSE NULL END                   AS perf_vs_teach_ratio
+    FROM algorithms a
+    LEFT JOIN (
+        SELECT algo_id,
+            COUNT(*)                     AS teach_times,
+            ROUND(AVG(comparisons), 0)   AS teach_avg_cmp,
+            ROUND(AVG(swaps), 0)         AS teach_avg_swp,
+            ROUND(AVG(time_micros), 0)   AS teach_avg_us
+        FROM teaching_experiments
+        WHERE user_id = p_user_id
+        GROUP BY algo_id
+    ) ts ON a.algo_id = ts.algo_id
+    LEFT JOIN (
+        SELECT bd.algo_id,
+            COUNT(*)                     AS perf_times,
+            ROUND(AVG(bd.time_micros), 0) AS perf_avg_us,
+            ROUND(AVG(bd.comparisons), 0) AS perf_avg_cmp,
+            ROUND(AVG(bd.swaps), 0)       AS perf_avg_swp
+        FROM batch_details bd
+        JOIN performance_batches pb ON bd.batch_id = pb.batch_id
+        WHERE pb.user_id = p_user_id
+        GROUP BY bd.algo_id
+    ) ps ON a.algo_id = ps.algo_id
+    WHERE ts.teach_times > 0 OR ps.perf_times > 0
+    ORDER BY teach_times DESC, perf_times DESC;
 END //
 DELIMITER ;

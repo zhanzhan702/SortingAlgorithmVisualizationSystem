@@ -7,68 +7,51 @@
 
     <div class="tab-bar">
       <button :class="['tab', { active: activeTab === 'stats' }]" @click="activeTab = 'stats'">算法统计</button>
-      <button :class="['tab', { active: activeTab === 'ranking' }]" @click="activeTab = 'ranking'">综合排名</button>
       <button :class="['tab', { active: activeTab === 'activity' }]" @click="loadActivity(); activeTab = 'activity'">用户活跃</button>
       <button :class="['tab', { active: activeTab === 'report' }]" @click="loadReport(); activeTab = 'report'">用户报告</button>
       <button :class="['tab', { active: activeTab === 'backup' }]" @click="activeTab = 'backup'" v-if="authStore.isAdmin">数据库备份</button>
     </div>
 
     <div class="admin-content">
-      <!-- 算法统计 -->
+      <!-- 算法统计（含排名） -->
       <section v-if="activeTab === 'stats'">
-        <table class="data-table" v-if="stats.length">
+        <table class="data-table" v-if="mergedStats.length">
           <thead>
             <tr>
               <th>算法</th>
-              <th colspan="4">📖 教学维度</th>
-              <th colspan="4">⚡ 性能维度</th>
+              <th>类别</th>
+              <th>复杂度</th>
+              <th>稳定</th>
+              <th colspan="3">📖 教学维度</th>
+              <th colspan="3">⚡ 性能维度</th>
+              <th>时/元素(µs)</th>
+              <th>排名</th>
             </tr>
             <tr>
-              <th></th>
-              <th>实验次数</th><th>均比较</th><th>均交换</th><th>均时(µs)</th>
-              <th>测试次数</th><th>均比较</th><th>均交换</th><th>均时(µs)</th>
+              <th></th><th></th><th></th><th></th>
+              <th>次数</th><th>均比较</th><th>均时(µs)</th>
+              <th>次数</th><th>均比较</th><th>均时(µs)</th>
+              <th></th><th></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="s in stats" :key="s.algoId">
-              <td>{{ algoMap[s.algoId] || s.algoId }}</td>
-              <td>{{ s.totalExperiments }}</td>
-              <td>{{ s.avgExpComparisons }}</td>
-              <td>{{ s.avgExpSwaps }}</td>
-              <td>{{ s.avgExpTimeMicros }}</td>
-              <td>{{ s.totalBatches }}</td>
-              <td>{{ s.avgBatchComparisons }}</td>
-              <td>{{ s.avgBatchSwaps }}</td>
-              <td>{{ s.avgBatchTimeMicros }}</td>
+            <tr v-for="m in mergedStats" :key="m.algoId || m.algo_name">
+              <td>{{ m.algo_name || algoMap[m.algoId] }}</td>
+              <td>{{ catMap[m.category] || m.category || '-' }}</td>
+              <td>{{ m.time_complexity || '-' }}</td>
+              <td>{{ m.is_stable != null ? (m.is_stable ? '是' : '否') : '-' }}</td>
+              <td>{{ m.total_experiments ?? m.teaching_count ?? 0 }}</td>
+              <td>{{ m.avg_exp_comparisons ?? '-' }}</td>
+              <td>{{ m.avg_exp_time_micros ?? m.teach_avg_time_us ?? 0 }}</td>
+              <td>{{ m.total_batches ?? m.perf_count ?? 0 }}</td>
+              <td>{{ m.avg_batch_comparisons ?? '-' }}</td>
+              <td>{{ m.avg_batch_time_micros ?? m.perf_avg_time_us ?? 0 }}</td>
+              <td>{{ m.perf_time_per_element_us ?? '-' }}</td>
+              <td><strong>{{ m.speed_rank ? '#' + m.speed_rank : '-' }}</strong></td>
             </tr>
           </tbody>
         </table>
         <p v-else>暂无统计数据（运行教学/性能模式后由触发器自动生成）</p>
-      </section>
-
-      <!-- 综合排名 -->
-      <section v-if="activeTab === 'ranking'">
-        <table class="data-table" v-if="ranking.length">
-          <thead>
-            <tr><th>算法</th><th>类别</th><th>复杂度</th><th>稳定</th><th>教学次数</th><th>教学均时(µs)</th><th>性能次数</th><th>性能均时(µs)</th><th>性能均数据量</th><th>时/元素(µs)</th><th>排名</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in ranking" :key="r.algo_name">
-              <td>{{ r.algo_name }}</td>
-              <td>{{ r.category }}</td>
-              <td>{{ r.time_complexity }}</td>
-              <td>{{ r.is_stable ? '是' : '否' }}</td>
-              <td>{{ r.teaching_count }}</td>
-              <td>{{ r.teach_avg_time_us }}</td>
-              <td>{{ r.perf_count }}</td>
-              <td>{{ r.perf_avg_time_us }}</td>
-              <td>{{ r.perf_avg_data_size || '-' }}</td>
-              <td>{{ r.perf_time_per_element_us ?? '-' }}</td>
-              <td><strong>#{{ r.speed_rank }}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>暂无排名数据</p>
       </section>
 
       <!-- 用户活跃度（视图） -->
@@ -97,11 +80,54 @@
           <button class="btn primary-btn" @click="loadReport()" style="width:auto">生成报告</button>
         </div>
         <div v-if="reportSummary" class="admin-section">
-          <h4>📊 {{ reportSummary.username }} 的实验报告</h4>
-          <p>总实验: <strong>{{ reportSummary.total_experiments }}</strong> | 完成: {{ reportSummary.completed }} | 停止: {{ reportSummary.stopped }}</p>
-          <p>平均比较: {{ reportSummary.avg_comparisons }} | 平均交换: {{ reportSummary.avg_swaps }} | 平均耗时: {{ reportSummary.avg_time_us }}µs</p>
+          <h4>📊 {{ reportSummary.username }}（{{ reportSummary.role }}）的综合报告</h4>
+
+          <h5 style="margin-top:16px">📖 教学模式</h5>
+          <p>总实验: <strong>{{ reportSummary.teach_total || 0 }}</strong>
+            | 完成: {{ reportSummary.teach_completed || 0 }}
+            | 停止: {{ reportSummary.teach_stopped || 0 }}</p>
+          <p>平均比较: {{ reportSummary.teach_avg_cmp || '-' }}
+            | 平均交换: {{ reportSummary.teach_avg_swp || '-' }}
+            | 平均耗时: {{ reportSummary.teach_avg_us || '-' }} µs</p>
+
+          <h5 style="margin-top:16px">⚡ 性能模式</h5>
+          <p>测试批次: <strong>{{ reportSummary.perf_batches || 0 }}</strong>
+            | 明细记录: {{ reportSummary.perf_details || 0 }}</p>
+          <p>平均比较: {{ reportSummary.perf_avg_cmp || '-' }}
+            | 平均交换: {{ reportSummary.perf_avg_swp || '-' }}
+            | 平均耗时: {{ reportSummary.perf_avg_us || '-' }} µs</p>
         </div>
         <p v-else style="color:#999">输入用户ID后点击"生成报告"</p>
+
+        <!-- 算法明细表 -->
+        <table class="data-table" v-if="reportDetails.length" style="margin-top:16px">
+          <thead>
+            <tr>
+              <th>算法</th>
+              <th colspan="3">📖 教学</th>
+              <th colspan="3">⚡ 性能</th>
+              <th>性能/教学</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th>次数</th><th>均比较</th><th>均时(µs)</th>
+              <th>次数</th><th>均比较</th><th>均时(µs)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in reportDetails" :key="d.algo_name">
+              <td>{{ d.algo_name }}</td>
+              <td>{{ d.teach_times || 0 }}</td>
+              <td>{{ d.teach_avg_cmp || '-' }}</td>
+              <td>{{ d.teach_avg_us || '-' }}</td>
+              <td>{{ d.perf_times || 0 }}</td>
+              <td>{{ d.perf_avg_cmp || '-' }}</td>
+              <td>{{ d.perf_avg_us || '-' }}</td>
+              <td>{{ d.perf_vs_teach_ratio ?? '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <!-- 备份 -->
@@ -126,14 +152,14 @@ import { useAuthStore } from '../stores/auth'
 const authStore = useAuthStore()
 const activeTab = ref('stats')
 const algoMap = { 1:'冒泡排序',2:'快速排序',3:'直接插入排序',4:'希尔排序',5:'堆排序',6:'归并排序' }
+const catMap = { insertion:'插入类', exchange:'交换类', selection:'选择类', merge:'归并类' }
 
-// Stats
-const stats = ref([])
-const ranking = ref([])
+// Stats (merged from /api/admin/stats + /api/admin/ranking)
+const mergedStats = ref([])
 
 // Activity & Report
 const activity = ref([])
-const reportUserId = ref('a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6')
+const reportUserId = ref(authStore.userId || '')
 const reportSummary = ref(null)
 const reportFavorite = ref(null)
 const reportDetails = ref([])
@@ -145,9 +171,37 @@ const files = ref([])
 
 const loadStats = async () => {
   try {
-    const res = await fetch('/api/admin/stats'); stats.value = await res.json() || []
-    const res2 = await fetch('/api/admin/ranking'); ranking.value = await res2.json() || []
-  } catch(e) {}
+    const [sRes, rRes] = await Promise.all([
+      fetch('/api/admin/stats'),
+      fetch('/api/admin/ranking')
+    ])
+    const statsArr = await sRes.json() || []
+    const rankingArr = await rRes.json() || []
+
+    // Merge: ranking view has algo_name, stats table has algoId; match by name via algoMap
+    const rankByName = {}
+    for (const r of rankingArr) {
+      rankByName[r.algo_name] = r
+    }
+
+    mergedStats.value = statsArr.map(s => {
+      const name = algoMap[s.algoId] || `算法#${s.algoId}`
+      const rank = rankByName[name] || {}
+      return {
+        ...s,
+        algo_name: name,
+        category: rank.category || null,
+        time_complexity: rank.time_complexity || null,
+        is_stable: rank.is_stable,
+        teaching_count: rank.teaching_count,
+        teach_avg_time_us: rank.teach_avg_time_us,
+        perf_count: rank.perf_count,
+        perf_avg_time_us: rank.perf_avg_time_us,
+        perf_time_per_element_us: rank.perf_time_per_element_us,
+        speed_rank: rank.speed_rank,
+      }
+    })
+  } catch(e) { console.error(e) }
 }
 
 const loadActivity = async () => {
@@ -157,9 +211,14 @@ const loadActivity = async () => {
 const loadReport = async () => {
   try {
     const res = await fetch(`/api/admin/report?userId=${reportUserId.value}`)
-    const data = await res.json()
-    if (data && data.length > 0) {
-      reportSummary.value = data[0] || null
+    const data = await res.json()  // [[rs1_rows], [rs2_rows], [rs3_rows]]
+    if (data && data.length > 0 && data[0] && data[0].length > 0) {
+      reportSummary.value = data[0][0] || null           // 结果集1: 综合统计（取第一行）
+      reportFavorite.value = (data.length > 1 && data[1].length) ? data[1][0] : null  // 结果集2: 最常用算法
+      reportDetails.value = data.length > 2 ? data[2] : []  // 结果集3: 算法明细列表
+    } else {
+      reportSummary.value = null
+      reportDetails.value = []
     }
   } catch(e) { console.error(e) }
 }
