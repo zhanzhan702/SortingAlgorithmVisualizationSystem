@@ -18,6 +18,7 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 .idea
+backups
 *.suo
 *.ntvs*
 *.njsproj
