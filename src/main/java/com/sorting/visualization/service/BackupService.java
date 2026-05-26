@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,12 +29,15 @@ public class BackupService {
 
         try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filename), StandardCharsets.UTF_8))) {
-            w.write("-- 恢复: mysql -u root -p sorting_visualization < " + filename + "\n\n");
-            w.write("USE sorting_visualization;\n\n");
+            w.write("-- 恢复: mysql -u root -p --default-character-set=utf8mb4 sorting_visualization < " + filename + "\n\n");
+            w.write("USE sorting_visualization;\n");
+            w.write("SET NAMES utf8mb4;\n");
+            w.write("SET FOREIGN_KEY_CHECKS = 0;\n\n");
             for (String t : new String[]{"users", "algorithms", "teaching_experiments",
                     "experiment_steps", "performance_batches", "batch_details", "algorithm_stats"}) {
                 exportTable(w, t);
             }
+            w.write("SET FOREIGN_KEY_CHECKS = 1;\n");
         }
         log.info("数据库备份完成: {}", filename);
         return filename;
@@ -41,8 +45,11 @@ public class BackupService {
 
     private void exportTable(BufferedWriter w, String table) throws IOException {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM " + table);
+        // 恢复时先清空表，避免主键冲突
+        w.write("TRUNCATE TABLE " + table + ";\n");
         if (rows.isEmpty()) { w.write("-- " + table + ": 0行\n\n"); return; }
-        String cols = String.join(", ", rows.get(0).keySet());
+        String cols = rows.get(0).keySet().stream()
+                .map(c -> "`" + c + "`").collect(Collectors.joining(", "));
         w.write("-- " + table + " (" + rows.size() + "行)\n");
         for (Map<String, Object> row : rows) {
             StringBuilder vals = new StringBuilder();
