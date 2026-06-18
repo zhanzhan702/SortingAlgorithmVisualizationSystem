@@ -210,36 +210,37 @@ MIT
 
 ### 请求消息
 
-| 消息类型 | 说明 | 示例 |
-|---------|------|------|
+| 消息类型       | 说明         | 示例                                                                          |
+| -------------- | ------------ | ----------------------------------------------------------------------------- |
 | `SORT_REQUEST` | 发起排序请求 | `{"type":"SORT_REQUEST","mode":"TEACHING","algorithm":"BUBBLE","data":[...]}` |
-| `CONTROL` | 控制命令 | `{"type":"CONTROL","action":"PAUSE"}` |
+| `CONTROL`      | 控制命令     | `{"type":"CONTROL","action":"PAUSE"}`                                         |
 
 ### 控制命令 (`CONTROL`)
 
-| Action | 说明 | 可选参数 |
-|--------|------|----------|
-| `PAUSE` | 暂停排序 | — |
-| `RESUME` | 继续排序 | `interval`: 更新步进间隔（毫秒） |
-| `STOP` | 停止排序 | — |
-| `STEP_FORWARD` | 单步执行（暂停时） | — |
+| Action         | 说明               | 可选参数                         |
+| -------------- | ------------------ | -------------------------------- |
+| `PAUSE`        | 暂停排序           | —                                |
+| `RESUME`       | 继续排序           | `interval`: 更新步进间隔（毫秒） |
+| `STOP`         | 停止排序           | —                                |
+| `STEP_FORWARD` | 单步执行（暂停时） | —                                |
 
 ### 响应消息
 
-| 消息类型 | 说明 |
-|---------|------|
-| `STEP_UPDATE` | 排序步骤更新（含数据快照、高亮信息、统计） |
-| `PERFORMANCE_RESULT` | 性能测试结果 |
-| `SORT_COMPLETE` | 排序完成（含最终统计） |
-| `ERROR` | 错误信息 |
-| `CONNECTED` | WebSocket 连接成功 |
-| `PAUSED` | 排序已暂停确认 |
-| `RESUMED` | 排序已继续确认 |
-| `STOPPED` | 排序已停止确认 |
+| 消息类型             | 说明                                       |
+| -------------------- | ------------------------------------------ |
+| `STEP_UPDATE`        | 排序步骤更新（含数据快照、高亮信息、统计） |
+| `PERFORMANCE_RESULT` | 性能测试结果                               |
+| `SORT_COMPLETE`      | 排序完成（含最终统计）                     |
+| `ERROR`              | 错误信息                                   |
+| `CONNECTED`          | WebSocket 连接成功                         |
+| `PAUSED`             | 排序已暂停确认                             |
+| `RESUMED`            | 排序已继续确认                             |
+| `STOPPED`            | 排序已停止确认                             |
 
 ## 开发指南
 
 ### 添加新排序算法
+
 1. 在 `impl/` 中创建新算法类，继承 `AbstractSortingAlgorithm<T>`
 2. 实现 `teach()` 和 `perform()` 方法
 3. 在 `AlgorithmConstants.ALGORITHM_IDS` 中添加算法标识
@@ -247,9 +248,11 @@ MIT
 5. 在前端的 `availableAlgorithms` 中添加选项
 
 ### 算法常量管理
+
 所有算法元信息（名称、复杂度、稳定性）集中在 `AlgorithmConstants` 类中，新增算法只需修改一处即可同步到 `SortService`、`HealthController`、`DataValidator` 等所有引用方。
 
 ### 伪代码管理
+
 伪代码维护在后端 `PseudoCodeUtil` 中，前端通过 `GET /api/algorithms` 接口获取，避免前后端重复维护。
 
 ## 暂停控制机制
