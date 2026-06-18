@@ -203,31 +203,8 @@ SortingAlgorithmVisualizationSystem/
 ## License
 
 MIT
-│ ├── src/
-│ │ ├── components/ # Vue 组件
-│ │ │ ├── ControlSection.vue # 控制面板（含暂停/继续/停止/单步）
-│ │ │ ├── ControlPanel/ # 控制面板子组件
-│ │ │ ├── InfoPanel/ # 信息面板组件
-│ │ │ └── Visualization/ # 可视化组件
-│ │ ├── composables/ # Vue 组合式函数
-│ │ │ ├── useWebSocket.js # WebSocket 通信（含 CONTROL 消息）
-│ │ │ ├── useVisualizer.js # SVG 可视化渲染
-│ │ │ └── useDataGenerator.js # 数据生成
-│ │ ├── stores/ # Pinia 状态管理
-│ │ │ ├── algorithm.js # 算法状态（伪代码从 API 获取）
-│ │ │ ├── data.js # 数据状态
-│ │ │ ├── ui.js # UI 状态（含 isPaused）
-│ │ │ ├── performance.js # 性能结果
-│ │ │ └── comparator.js # 比较器配置
-│ │ ├── utils/ # 前端工具函数
-│ │ ├── views/ # 页面视图
-│ │ └── assets/ # 样式文件
-│ ├── public/ # 公共静态资源
-│ └── package.json # 前端依赖配置
-├── pom.xml # Maven 配置
-└── README.md # 项目说明
 
-```
+---
 
 ## WebSocket 通信协议
 
@@ -280,18 +257,11 @@ MIT
 系统使用事件驱动（`Object.wait()/notify()`）实现零 CPU 开销的暂停/恢复：
 
 ```
-
-PAUSE -> isPaused = true -> 发送线程调用 waitIfPaused() -> 阻塞等待
-RESUME -> isPaused = false -> pauseLock.notifyAll() -> 发送线程恢复
-STEP -> stepCounter++ -> pauseLock.notifyAll() -> 发送线程执行一步后重新阻塞
-
+PAUSE  → isPaused = true  → 发送线程调用 waitIfPaused() → 阻塞等待
+RESUME → isPaused = false → pauseLock.notifyAll()        → 发送线程恢复
+STEP   → stepCounter++     → pauseLock.notifyAll()        → 执行一步后重新阻塞
 ```
 
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request 来改进这个项目！
-
-## 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-```
