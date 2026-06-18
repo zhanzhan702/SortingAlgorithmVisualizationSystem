@@ -4,6 +4,7 @@ package com.sorting.visualization.controller;
 import com.sorting.visualization.model.response.ErrorResponse;
 import com.sorting.visualization.util.JsonUtil;
 import com.sorting.visualization.websocket.MessageHandler;
+import com.sorting.visualization.websocket.SessionState;
 import com.sorting.visualization.websocket.WebSocketSessionManager;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +49,28 @@ public class WebSocketController {
         // 初始化会话管理器
         if (sessionManager != null) {
             sessionManager.addSession(sessionId, session);
+        }
+
+        // 解析 token 参数，提取 userId
+        try {
+            URI uri = session.getRequestURI();
+            String query = uri.getQuery();
+            String userId = null;
+            if (query != null && query.contains("token=")) {
+                String token = query.substring(query.indexOf("token=") + 6);
+                if (token.contains("&")) token = token.substring(0, token.indexOf("&"));
+                // 从 "token-{userId}" 提取 userId
+                if (token.startsWith("token-") && token.length() > 6) {
+                    userId = token.substring(6);
+                }
+                log.info("WebSocket 已认证: sessionId={}, userId={}", sessionId, userId);
+            }
+            SessionState st = sessionManager.getSessionState(sessionId);
+            if (st != null) st.setUserId(userId);
+        } catch (Exception e) {
+            log.warn("解析 token 失败: sessionId={}", sessionId, e);
+            SessionState st = sessionManager.getSessionState(sessionId);
+            if (st != null) st.setUserId(null);
         }
 
         // 发送连接成功消息

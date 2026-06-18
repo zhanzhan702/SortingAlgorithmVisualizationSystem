@@ -71,10 +71,10 @@ public class WebSocketSessionManager {
     /**
      * 开始处理请求
      */
-    public void startProcessing(String sessionId, String requestId, String algorithm, String mode, int interval) {
+    public void startProcessing(String sessionId, String requestId, String algorithm, String mode, int interval, int dataSize, boolean saveReplay) {
         SessionState state = sessionStates.get(sessionId);
         if (state != null) {
-            state.startProcessing(requestId, algorithm, mode, interval);
+            state.startProcessing(requestId, algorithm, mode, interval, dataSize, saveReplay);
         }
     }
 

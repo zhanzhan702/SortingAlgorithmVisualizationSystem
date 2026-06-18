@@ -3,15 +3,15 @@
         <div class="footer-content">
             <div class="footer-item">
                 <i class="fas fa-exclamation-triangle"></i>
-                <span>注意：教学模式最多支持100个数据 | 性能模式最多支持1000个数据</span>
+                <span>教学模式 ≤100 数据 | 性能模式 ≤1000 数据</span>
             </div>
             <div class="footer-item">
-                <i class="fas fa-cog"></i>
-                <span>教学模式：展示排序过程 | 性能模式：对比算法效率</span>
+                <i class="fas fa-database"></i>
+                <span>MySQL 8.0 + MyBatis-Plus | 触发器 · 视图 · 存储过程</span>
             </div>
             <div class="footer-item">
                 <i class="fas fa-code"></i>
-                <span>后端：Spring Boot + WebSocket | 前端：Vue 3 + SVG</span>
+                <span>后端 Spring Boot 4 + WebSocket | 前端 Vue 3 + Pinia + Chart.js</span>
             </div>
         </div>
     </footer>

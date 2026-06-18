@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { usePerformanceStore } from '../../stores/performance'
 import { useWebSocket } from '../../composables/useWebSocket'
 import { useUiStore } from '../../stores/ui'
@@ -155,6 +155,18 @@ watch(tableContainer, (newEl, oldEl) => {
 onUnmounted(() => {
     if (currentTableElement) {
         currentTableElement.removeEventListener('wheel', handleTableWheel)
+        currentTableElement = null
+    }
+    if (chart) {
+        chart.destroy()
+        chart = null
+    }
+})
+
+// 组件挂载时，如果 store 中已有结果则重建图表
+onMounted(() => {
+    if (performanceStore.results.length > 0) {
+        nextTick(() => updateChart())
     }
 })
 

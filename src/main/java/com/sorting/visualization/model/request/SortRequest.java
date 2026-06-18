@@ -15,6 +15,7 @@ public class SortRequest {
     private Integer interval;      // 步进间隔（毫秒）
     private String distribution;   // RANDOM, SORTED, REVERSE, DUPLICATE, NORMAL
     private Boolean ascending = true;  // 排序方向
+    private Boolean saveReplay = false; // 是否保存回放（步骤快照）
     private ComparatorInfo comparatorInfo;  // 比较器信息
     private Long timestamp;
 
