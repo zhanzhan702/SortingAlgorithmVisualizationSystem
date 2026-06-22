@@ -72,7 +72,7 @@ CREATE TABLE experiment_steps (
     description    VARCHAR(200),
     FOREIGN KEY (exp_id) REFERENCES teaching_experiments(exp_id) ON DELETE CASCADE,
     INDEX idx_step_exp (exp_id, step_number)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='教学实验步骤快照（可选）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='教学实验步骤快照';
 
 -- ----------------------------
 -- 6. 性能测试批次主表
