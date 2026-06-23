@@ -40,12 +40,12 @@
               <td>{{ catMap[m.category] || m.category || '-' }}</td>
               <td>{{ m.time_complexity || '-' }}</td>
               <td>{{ m.is_stable != null ? (m.is_stable ? '是' : '否') : '-' }}</td>
-              <td>{{ m.total_experiments ?? m.teaching_count ?? 0 }}</td>
-              <td>{{ m.avg_exp_comparisons ?? '-' }}</td>
-              <td>{{ m.avg_exp_time_micros ?? m.teach_avg_time_us ?? 0 }}</td>
-              <td>{{ m.total_batches ?? m.perf_count ?? 0 }}</td>
-              <td>{{ m.avg_batch_comparisons ?? '-' }}</td>
-              <td>{{ m.avg_batch_time_micros ?? m.perf_avg_time_us ?? 0 }}</td>
+              <td>{{ m.totalExperiments ?? m.teaching_count ?? 0 }}</td>
+              <td>{{ m.avgExpComparisons ?? '-' }}</td>
+              <td>{{ m.avgExpTimeMicros ?? m.teach_avg_time_us ?? 0 }}</td>
+              <td>{{ m.totalBatches ?? m.perf_count ?? 0 }}</td>
+              <td>{{ m.avgBatchComparisons ?? '-' }}</td>
+              <td>{{ m.avgBatchTimeMicros ?? m.perf_avg_time_us ?? 0 }}</td>
               <td>{{ m.perf_time_per_element_us ?? '-' }}</td>
               <td><strong>{{ m.speed_rank ? '#' + m.speed_rank : '-' }}</strong></td>
             </tr>
