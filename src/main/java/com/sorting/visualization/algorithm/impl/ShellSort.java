@@ -51,6 +51,7 @@ public class ShellSort<T> extends AbstractSortingAlgorithm<T> {
 
                     if (compare(comparator, workingData.get(j - gap), temp) > 0) {
                         workingData.set(j, workingData.get(j - gap));
+                        recordSwap();
 
                         highlight = new Highlight();
                         highlight.setSwap(List.of(j, j - gap));
@@ -65,6 +66,7 @@ public class ShellSort<T> extends AbstractSortingAlgorithm<T> {
                 }
 
                 workingData.set(j, temp);
+                recordSwap();
 
                 highlight = new Highlight();
                 highlight.setSwap(List.of(j));

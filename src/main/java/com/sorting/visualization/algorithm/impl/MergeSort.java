@@ -132,6 +132,7 @@ public class MergeSort<T> extends AbstractSortingAlgorithm<T> {
         // 将临时数组复制回原数组
         for (i = 0; i < k; i++) {
             data.set(left + i, temp.get(i));
+            recordSwap();
         }
 
         highlight = new Highlight();

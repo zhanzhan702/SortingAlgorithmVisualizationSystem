@@ -49,6 +49,7 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
 
                 if (compare(comparator, workingData.get(j), key) > 0) {
                     workingData.set(j + 1, workingData.get(j));
+                    recordSwap();
 
                     highlight = new Highlight();
                     highlight.setSwap(List.of(j, j + 1));
@@ -64,6 +65,7 @@ public class InsertionSort<T> extends AbstractSortingAlgorithm<T> {
             }
 
             workingData.set(j + 1, key);
+            recordSwap();
 
             highlight = new Highlight();
             highlight.setSorted(sorted);
