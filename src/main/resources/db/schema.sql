@@ -56,8 +56,7 @@ CREATE TABLE teaching_experiments (
     finished_at  TIMESTAMP NULL,
     FOREIGN KEY (user_id)    REFERENCES users(user_id)      ON DELETE CASCADE,
     FOREIGN KEY (algo_id)    REFERENCES algorithms(algo_id) ON DELETE RESTRICT,
-    INDEX idx_exp_user_time (user_id, started_at),
-    INDEX idx_exp_algo_status (algo_id, status)
+    INDEX idx_exp_user_time (user_id, started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='教学实验摘要';
 
 -- ----------------------------
