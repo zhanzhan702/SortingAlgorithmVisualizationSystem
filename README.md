@@ -160,7 +160,6 @@ SortingAlgorithmVisualizationSystem/
 │   │   ├── schema.sql          # 建表 DDL
 │   │   ├── data.sql            # 初始数据
 │   │   ├── procedures.sql      # 触发器+视图+存储过程
-│   │   └── migrate_to_uuid.sql # UUID 迁移脚本
 │   └── static/                 # 前端构建产物
 └── frontend-vue/
     ├── src/
