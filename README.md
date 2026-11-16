@@ -1,4 +1,4 @@
-﻿# 排序算法可视化教学与实验数据管理平台
+# 排序算法可视化教学与实验数据管理平台
 
 一个支持教学演示和性能测试的排序算法可视化系统——**数据库（数据结构）课程设计项目**。
 
@@ -172,32 +172,50 @@ SortingAlgorithmVisualizationSystem/
     └── vite.config.js
 ```
 
-## API 端点
+## 鉴权与 API 端点
+
+### 鉴权规则
+
+所有 `/api/**` 默认需要 JWT：请求头 `Authorization: Bearer <token>`，
+令牌由 `POST /api/auth/login` 签发（HS256，默认 24 小时，密钥与时长见 `jwt.secret` / `jwt.expiration`）。
+
+| 范围                                                     | 要求                 |
+| -------------------------------------------------------- | -------------------- |
+| `/api/auth/login`、`/api/auth/register`、`/api/algorithms` | 公开                 |
+| `/api/history/**`、`/api/auth/me`                         | 任意已登录用户       |
+| `/api/admin/**` 的查询                                    | `teacher` 或 `admin` |
+| `POST /api/admin/cleanup`、`POST /api/admin/backup`       | 仅 `admin`           |
+
+未登录返回 401（`UNAUTHORIZED` / `TOKEN_INVALID` / `TOKEN_EXPIRED`），权限不足返回 403（`FORBIDDEN`），
+错误体统一为 `{"success": false, "code": "...", "message": "..."}`。
 
 ### 认证
 
-- `POST /api/auth/register` — 注册
-- `POST /api/auth/login` — 登录
+- `POST /api/auth/register` — 注册（角色只能是 `student` / `teacher`）
+- `POST /api/auth/login` — 登录，返回 `token` / `role` / `expiresIn`
+- `GET /api/auth/me` — 当前登录者信息（从令牌解析，不信客户端传参）
 
-### 历史记录
+### 历史记录（需登录）
 
-- `GET /api/history/experiments?userId=` — 用户实验
+- `GET /api/history/experiments?userId=` — 用户实验（学生只能取到本人数据）
 - `GET /api/history/experiments/all` — 全部实验（教师）
 - `GET /api/history/experiments/{id}/steps` — 步骤快照
 - `GET /api/history/performance?userId=` — 性能批次
 - `GET /api/history/performance/{id}/details` — 批次明细
 
-### 管理后台
+### 管理后台（`teacher` / `admin`，写操作仅 `admin`）
 
 - `GET /api/admin/stats` — 算法统计（触发器）
 - `GET /api/admin/ranking` — 综合排名（视图）
 - `GET /api/admin/activity` — 用户活跃（视图）
 - `GET /api/admin/report?userId=` — 用户报告（存储过程）
-- `POST /api/admin/backup` — 数据库备份
+- `POST /api/admin/backup` — 数据库备份（仅 `admin`）
+- `GET /api/admin/backups` — 备份文件列表
+- `POST /api/admin/cleanup` — 清空实验数据（仅 `admin`）
 
 ### WebSocket
 
-- `ws://localhost:8080/websocket?token=token-{userId}`
+- `ws://localhost:8080/websocket` — 可视化会话通道，与 HTTP 鉴权相互独立（演示用，不校验令牌）
 
 ## License
 
@@ -253,6 +271,24 @@ MIT
 ### 伪代码管理
 
 伪代码维护在后端 `PseudoCodeUtil` 中，前端通过 `GET /api/algorithms` 接口获取，避免前后端重复维护。
+
+### 运行测试
+
+```bash
+# 鉴权相关单元测试（JWT + 两个拦截器，20 个用例，不依赖数据库）
+mvn test -Dtest=JwtUtilTest,AuthInterceptorTest,RoleInterceptorTest
+```
+
+### 鉴权实现位置
+
+| 类                                        | 作用                                              |
+| ----------------------------------------- | ------------------------------------------------- |
+| `security/JwtUtil`                        | HS256 签发与校验，密钥来自 `jwt.secret`           |
+| `security/AuthInterceptor`                | 校验 `Authorization` 头，把用户信息写入 request   |
+| `security/RoleInterceptor`                | `/api/admin/**` 的角色分级                         |
+| `config/WebConfig`                        | 注册拦截器，`/api/**` 默认保护 + 白名单           |
+| `config/JwtConfig`                        | 把配置项注入 `JwtUtil`                            |
+| `frontend-vue/src/utils/api.js`           | 前端统一注入令牌，401 跳登录、403 提示            |
 
 ## 暂停控制机制
 
