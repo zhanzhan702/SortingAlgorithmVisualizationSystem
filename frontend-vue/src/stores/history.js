@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '../utils/api'
 
 export const useHistoryStore = defineStore('history', {
   state: () => ({
@@ -12,7 +13,7 @@ export const useHistoryStore = defineStore('history', {
     async fetchExperiments(userId, page = 1) {
       this.loading = true
       try {
-        const res = await fetch(
+        const res = await apiFetch(
           `/api/history/experiments?userId=${userId}&page=${page}&size=${this.pageSize}`
         )
         const data = await res.json()
@@ -27,7 +28,7 @@ export const useHistoryStore = defineStore('history', {
     },
     async fetchSteps(expId) {
       try {
-        const res = await fetch(`/api/history/experiments/${expId}/steps`)
+        const res = await apiFetch(`/api/history/experiments/${expId}/steps`)
         return await res.json()
       } catch (e) {
         console.error('获取步骤失败:', e)

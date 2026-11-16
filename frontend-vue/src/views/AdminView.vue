@@ -148,6 +148,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { apiFetch } from '../utils/api'
 
 const authStore = useAuthStore()
 const activeTab = ref('stats')
@@ -172,8 +173,8 @@ const files = ref([])
 const loadStats = async () => {
   try {
     const [sRes, rRes] = await Promise.all([
-      fetch('/api/admin/stats'),
-      fetch('/api/admin/ranking')
+      apiFetch('/api/admin/stats'),
+      apiFetch('/api/admin/ranking')
     ])
     const statsArr = await sRes.json() || []
     const rankingArr = await rRes.json() || []
@@ -205,12 +206,12 @@ const loadStats = async () => {
 }
 
 const loadActivity = async () => {
-  try { const res = await fetch('/api/admin/activity'); activity.value = await res.json() || [] } catch(e) {}
+  try { const res = await apiFetch('/api/admin/activity'); activity.value = await res.json() || [] } catch(e) {}
 }
 
 const loadReport = async () => {
   try {
-    const res = await fetch(`/api/admin/report?userId=${reportUserId.value}`)
+    const res = await apiFetch(`/api/admin/report?userId=${reportUserId.value}`)
     const data = await res.json()  // [[rs1_rows], [rs2_rows], [rs3_rows]]
     if (data && data.length > 0 && data[0] && data[0].length > 0) {
       reportSummary.value = data[0][0] || null           // 结果集1: 综合统计（取第一行）
@@ -226,7 +227,7 @@ const loadReport = async () => {
 const doBackup = async () => {
   backingUp.value = true
   try {
-    const res = await fetch('/api/admin/backup', { method: 'POST' })
+    const res = await apiFetch('/api/admin/backup', { method: 'POST' })
     const data = await res.json()
     backupMsg.value = data.success ? `备份成功: ${data.filename}` : `备份失败: ${data.message}`
     if (data.success) loadFiles()
@@ -236,7 +237,7 @@ const doBackup = async () => {
 
 const loadFiles = async () => {
   try {
-    const res = await fetch('/api/admin/backups'); const data = await res.json()
+    const res = await apiFetch('/api/admin/backups'); const data = await res.json()
     files.value = data.files || []
   } catch(e) {}
 }

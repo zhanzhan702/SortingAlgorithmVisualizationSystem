@@ -160,6 +160,7 @@ import { useHistoryStore } from '../stores/history'
 import { useAuthStore } from '../stores/auth'
 import { useAlgorithmStore } from '../stores/algorithm'
 import { useDataStore } from '../stores/data'
+import { apiFetch } from '../utils/api'
 
 const router = useRouter()
 const historyStore = useHistoryStore()
@@ -203,7 +204,7 @@ const onShowAllChange = () => {
 const fetchAllExperiments = async () => {
   loading.value = true
   try {
-    const res = await fetch('/api/history/experiments/all?page=1&size=20')
+    const res = await apiFetch('/api/history/experiments/all?page=1&size=20')
     const data = await res.json()
     historyStore.experiments = data.records || []
     historyStore.total = data.total || 0
@@ -285,13 +286,13 @@ const fetchPerfBatches = async () => {
   loading.value = true
   try {
     const userIdParam = showAll.value ? 'all' : (authStore.userId || '')
-    const res = await fetch(`/api/history/performance?userId=${userIdParam}`)
+    const res = await apiFetch(`/api/history/performance?userId=${userIdParam}`)
     const data = await res.json()
     // 补充每个批次的算法数和最优算法
     const batches = data.records || []
     for (const b of batches) {
       try {
-        const dRes = await fetch(`/api/history/performance/${b.batchId}/details`)
+        const dRes = await apiFetch(`/api/history/performance/${b.batchId}/details`)
         const details = await dRes.json()
         b.detailCount = details.length
         if (details.length) {
@@ -311,7 +312,7 @@ const fetchPerfBatches = async () => {
 const viewPerfDetail = async (batch) => {
   perfDetailBatch.value = batch; perfDetails.value = []; showPerfDetail.value = true
   try {
-    const res = await fetch(`/api/history/performance/${batch.batchId}/details`)
+    const res = await apiFetch(`/api/history/performance/${batch.batchId}/details`)
     perfDetails.value = await res.json() || []
   } catch (e) { console.error(e) }
 }

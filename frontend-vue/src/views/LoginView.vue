@@ -45,20 +45,33 @@ const error = ref('')
 
 const handleSubmit = async () => {
   error.value = ''
-  const url = isRegister.value ? '/api/auth/register' : '/api/auth/login'
-  const fullUrl = url
+  const payload = JSON.stringify({ username: username.value, password: password.value, role: role.value })
   try {
-    const res = await fetch(fullUrl, {
+    if (isRegister.value) {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      })
+      const data = await res.json()
+      if (!data.success) {
+        error.value = data.message || '注册失败'
+        return
+      }
+      // 注册接口不签发令牌，注册成功后用同一份凭据直接登录
+    }
+    const loginRes = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username.value, password: password.value, role: role.value }),
+      body: payload,
     })
-    const data = await res.json()
-    if (data.success) {
-      authStore.setAuth(data.token, data.userId, data.username, data.role || 'student')
+    const loginData = await loginRes.json()
+    if (loginData.success) {
+      authStore.setAuth(loginData.token, loginData.userId, loginData.username, loginData.role || 'student')
       router.push('/')
     } else {
-      error.value = data.message || '操作失败'
+      error.value = loginData.message || '操作失败'
+      isRegister.value = false
     }
   } catch (e) {
     error.value = '服务器连接失败: ' + e.message

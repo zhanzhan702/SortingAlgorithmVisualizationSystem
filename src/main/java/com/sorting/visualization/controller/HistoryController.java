@@ -8,6 +8,7 @@ import com.sorting.visualization.entity.TeachingExperiment;
 import com.sorting.visualization.mapper.BatchDetailMapper;
 import com.sorting.visualization.mapper.PerformanceBatchMapper;
 import com.sorting.visualization.mapper.TeachingExperimentMapper;
+import com.sorting.visualization.security.AuthInterceptor;
 import com.sorting.visualization.service.ExperimentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +27,16 @@ public class HistoryController {
     private final BatchDetailMapper batchDetailMapper;
     private final PerformanceBatchMapper performanceBatchMapper;
 
-    /** 分页查询教学实验历史 */
+    /** 分页查询教学实验历史（学生只能查自己，教师/管理员可查指定用户） */
     @GetMapping("/experiments")
     public Map<String, Object> getExperiments(
-            @RequestParam String userId,
+            @RequestParam(required = false) String userId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Page<TeachingExperiment> result = experimentService.getUserExperiments(userId, page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestAttribute(AuthInterceptor.ATTR_USER_ID) String currentUserId,
+            @RequestAttribute(value = AuthInterceptor.ATTR_ROLE, required = false) String role) {
+        String target = resolveTargetUser(userId, currentUserId, role);
+        Page<TeachingExperiment> result = experimentService.getUserExperiments(target, page, size);
         Map<String, Object> map = new HashMap<>();
         map.put("records", result.getRecords());
         map.put("total", result.getTotal());
@@ -75,16 +79,21 @@ public class HistoryController {
         return map;
     }
 
-    /** 分页查询性能测试批次（userId 为空时查询全部） */
+    /** 分页查询性能测试批次（学生只能查自己；教师/管理员 userId 为空时查全部） */
     @GetMapping("/performance")
     public Map<String, Object> getPerformanceBatches(
             @RequestParam(defaultValue = "") String userId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestAttribute(AuthInterceptor.ATTR_USER_ID) String currentUserId,
+            @RequestAttribute(value = AuthInterceptor.ATTR_ROLE, required = false) String role) {
         Page<PerformanceBatch> p = new Page<>(page, size);
         var wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<PerformanceBatch>()
                 .orderByDesc(PerformanceBatch::getCreatedAt);
-        if (userId != null && !userId.isEmpty() && !"all".equals(userId)) {
+        boolean privileged = isPrivileged(role);
+        if (!privileged) {
+            wrapper.eq(PerformanceBatch::getUserId, currentUserId);
+        } else if (userId != null && !userId.isEmpty() && !"all".equals(userId)) {
             wrapper.eq(PerformanceBatch::getUserId, userId);
         }
         Page<PerformanceBatch> result = performanceBatchMapper.selectPage(p, wrapper);
@@ -93,6 +102,22 @@ public class HistoryController {
         map.put("total", result.getTotal());
         map.put("page", page);
         return map;
+    }
+
+    /** 教师与管理员可以查他人数据 */
+    static boolean isPrivileged(String role) {
+        return "admin".equals(role) || "teacher".equals(role);
+    }
+
+    /** 学生传任意 userId 都会被改写成令牌里的本人主键，避免越权读他人实验 */
+    static String resolveTargetUser(String requested, String currentUserId, String role) {
+        if (!isPrivileged(role)) {
+            return currentUserId;
+        }
+        if (requested == null || requested.isBlank() || "all".equals(requested)) {
+            return currentUserId;
+        }
+        return requested;
     }
 
     /** 查询性能批次的明细 */
