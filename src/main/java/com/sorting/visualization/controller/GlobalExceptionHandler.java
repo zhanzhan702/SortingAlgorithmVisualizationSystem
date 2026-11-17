@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             violations.add(new ApiError.Violation(
                     fieldError.getField(),
-                    defaultMessage(fieldError.getDefaultMessage(), "参数不合法")));
+                    fieldMessage(fieldError)));
         }
         ex.getBindingResult().getGlobalErrors().forEach(globalError ->
                 violations.add(new ApiError.Violation(
@@ -181,6 +181,20 @@ public class GlobalExceptionHandler {
 
     private String defaultMessage(String message, String fallback) {
         return (message == null || message.isBlank()) ? fallback : message;
+    }
+
+    /**
+     * 单个字段的错误文案。
+     *
+     * <p>类型转换失败（如 {@code page=abc}）时，Spring 的 defaultMessage 是英文的
+     * 「Failed to convert property value of type ...」，既与本项目统一的中文文案不一致，
+     * 又把内部类型名暴露给客户端，这里统一改写。</p>
+     */
+    private String fieldMessage(FieldError fieldError) {
+        if ("typeMismatch".equals(fieldError.getCode())) {
+            return "参数 " + fieldError.getField() + " 类型不正确";
+        }
+        return defaultMessage(fieldError.getDefaultMessage(), "参数不合法");
     }
 
     private void logFailure(ErrorCode code, String message, Exception ex, HttpServletRequest request) {

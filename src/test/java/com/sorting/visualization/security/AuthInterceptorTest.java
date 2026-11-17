@@ -113,4 +113,18 @@ class AuthInterceptorTest {
         assertThat(interceptor.preHandle(request, response, handler)).isFalse();
         assertThat(response.getStatus()).isEqualTo(401);
     }
+
+    @Test
+    @DisplayName("401 响应体与 W2 的 ApiError 契约一致（含 status / path / success）")
+    void errorBodyMatchesApiErrorContract() throws Exception {
+        MockHttpServletResponse response = response();
+
+        interceptor.preHandle(request("GET", "/api/admin/stats"), response, handler);
+
+        assertThat(response.getContentAsString())
+                .contains("\"success\":false")
+                .contains("\"status\":401")
+                .contains("\"path\":\"/api/admin/stats\"")
+                .contains(AuthErrors.CODE_UNAUTHORIZED);
+    }
 }

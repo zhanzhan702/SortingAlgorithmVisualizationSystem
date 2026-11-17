@@ -1,5 +1,6 @@
 package com.sorting.visualization.security;
 
+import com.sorting.visualization.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -38,8 +39,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         String token = resolveToken(request);
         if (token == null) {
-            AuthErrors.write(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    AuthErrors.CODE_UNAUTHORIZED, "未登录或缺少访问令牌");
+            AuthErrors.write(request, response, ErrorCode.UNAUTHORIZED, "未登录或缺少访问令牌");
             return false;
         }
 
@@ -50,11 +50,9 @@ public class AuthInterceptor implements HandlerInterceptor {
             request.setAttribute(ATTR_ROLE, claims.get(JwtUtil.CLAIM_ROLE, String.class));
             return true;
         } catch (ExpiredJwtException e) {
-            AuthErrors.write(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    AuthErrors.CODE_TOKEN_EXPIRED, "登录已过期，请重新登录");
+            AuthErrors.write(request, response, ErrorCode.TOKEN_EXPIRED, "登录已过期，请重新登录");
         } catch (JwtException | IllegalArgumentException e) {
-            AuthErrors.write(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    AuthErrors.CODE_TOKEN_INVALID, "访问令牌无效");
+            AuthErrors.write(request, response, ErrorCode.TOKEN_INVALID, "访问令牌无效");
         }
         return false;
     }

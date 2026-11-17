@@ -1,5 +1,6 @@
 package com.sorting.visualization.security;
 
+import com.sorting.visualization.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
@@ -41,16 +42,14 @@ public class RoleInterceptor implements HandlerInterceptor {
 
         if (ADMIN_ONLY_PATHS.contains(path)) {
             if (!ROLE_ADMIN.equals(role)) {
-                AuthErrors.write(response, HttpServletResponse.SC_FORBIDDEN,
-                        AuthErrors.CODE_FORBIDDEN, "该操作仅管理员可执行");
+                AuthErrors.write(request, response, ErrorCode.FORBIDDEN, "该操作仅管理员可执行");
                 return false;
             }
             return true;
         }
 
         if (!ROLE_ADMIN.equals(role) && !ROLE_TEACHER.equals(role)) {
-            AuthErrors.write(response, HttpServletResponse.SC_FORBIDDEN,
-                    AuthErrors.CODE_FORBIDDEN, "需要教师或管理员权限");
+            AuthErrors.write(request, response, ErrorCode.FORBIDDEN, "需要教师或管理员权限");
             return false;
         }
         return true;

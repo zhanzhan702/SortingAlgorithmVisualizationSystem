@@ -2,15 +2,20 @@ package com.sorting.visualization.controller;
 
 import com.sorting.visualization.exception.ApiException;
 import com.sorting.visualization.exception.ErrorCode;
+import com.sorting.visualization.model.response.ApiError;
 import com.sorting.visualization.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -121,5 +126,24 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
                 .andExpect(jsonPath("$.message").value("服务器内部错误"));
+    }
+
+    @Test
+    @DisplayName("page=abc 之类类型转换错误改为中文文案，不泄露 Spring 英文异常")
+    void typeMismatchIsLocalized() throws Exception {
+        BindException ex = new BindException(new com.sorting.visualization.model.request.PageQuery(), "pageQuery");
+        ex.addError(new FieldError("pageQuery", "page", "abc", false,
+                new String[]{"typeMismatch"}, null,
+                "Failed to convert property value of type 'java.lang.String' to required type 'int'"));
+
+        ApiError body = new GlobalExceptionHandler()
+                .handleBindException(ex, new MockHttpServletRequest("GET", "/api/history/experiments"))
+                .getBody();
+
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(400);
+        assertThat(body.getCode()).isEqualTo("VALIDATION_ERROR");
+        assertThat(body.getMessage()).isEqualTo("参数 page 类型不正确");
+        assertThat(body.getMessage()).doesNotContain("Failed to convert");
     }
 }
