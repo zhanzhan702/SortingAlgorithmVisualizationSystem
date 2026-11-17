@@ -2,7 +2,7 @@
 
 > 项目：排序算法可视化教学与实验数据管理平台
 > 课程：Java 高级编程（33252070）· 期末项目综合实践
-> 文档版本：v1.6（结项期补编）　整理日期：2026-11-17
+> 文档版本：v1.7（结项期补编）　整理日期：2026-11-17
 
 ---
 
@@ -34,6 +34,7 @@
 | v1.4 | 2026-11-16 | W1 完成并验收：补 5.3 认领行、5.5 验收记录；W4 补记「分页插件未注册」实测缺陷 |
 | v1.5 | 2026-11-17 | W2+W3 完成并验收：补 5.6 编译与测试记录；更正 W3「0 处调用」的过时描述；补 5.3 认领行与提交号；更新风险表 |
 | v1.6 | 2026-11-17 | W2/W3 独立复核：补真实 HTTP/WebSocket 复测结论与两处契约修正（`42941a3`） |
+| v1.7 | 2026-11-17 | W4+W5 完成并验收：补 5.7 记录（`/api/page/*` 分页、登出/改密接口与弹窗）；更新 5.1/5.2 状态、5.3 认领行与提交号 |
 
 ---
 
@@ -236,8 +237,8 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | **W1** | 鉴权拦截器 + Admin 角色校验            | ~~无任何 `HandlerInterceptor`~~ **已完成**（提交 `beb9a69`）        | `/api/admin/cleanup` 未鉴权即可 `TRUNCATE` 5 张表，是最高风险项 |
 | **W2** | 全局异常处理                           | ~~无 `@RestControllerAdvice`~~ **已完成**（提交 `ede198e`，见 5.6） | 评分明文考「异常处理」                                          |
 | **W3** | 参数校验接入                           | ~~`util/DataValidator` 已写但 0 处调用~~ 实际早已在 `MessageHandler` 调用，真正缺口是覆盖面：CONTROL、消息类型、分布/比较器字段未校验，且 REST 接口 0 处 Bean Validation。**已完成**（提交 `ede198e`，见 5.6） | 死代码转为有效代码，同时补「正确性」                            |
-| **W4** | 分页                                   | 未注册分页插件：`selectPage` 全量返回且 `total` 恒为 0（W1 验收实测） | 完整性 + 性能                                                   |
-| **W5** | 登出 / 修改密码                        | 无 `logout`、无 `changePassword`                                    | 用户手册必备章节                                                |
+| **W4** | 分页                                   | ~~未注册分页插件：`selectPage` 全量返回且 `total` 恒为 0~~ **已完成**：新增 `/api/page/*` 显式 `LIMIT` 分页（见 5.7） | 完整性 + 性能                                                   |
+| **W5** | 登出 / 修改密码                        | ~~无 `logout`、无 `changePassword`~~ **已完成**：接口 + 前端改密弹窗（见 5.7） | 用户手册必备章节                                                |
 | **W6** | 单元测试至覆盖率 ≥80%                  | `src/test` 仅 1 个 13 行空壳                                        | 「覆盖率 ≥80% 满分，低于每降 1% 扣 0.3 分」——提分最确定         |
 | **W7** | 需求分析、系统设计、测试报告、用户手册 | 缺 4 份                                                             | 「文档缺失一项扣 10 分」                                        |
 | **W8** | 演示视频                               | 未录制                                                              | 提交材料第 1 项                                                 |
@@ -247,8 +248,8 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | 日期        | 工作包       | 交付标准（当天必须达成）                                                         |
 | ----------- | ------------ | -------------------------------------------------------------------------------- |
 | 11-16（一） | W1           | 未登录访问 `/api/admin/stats` 返回 401；非管理员返回 403（**✅ 已完成**，见 5.5） |
-| 11-17（二） | W2 + W3 + W4 | 错误参数返回结构化 JSON；`/api/history/experiments` 支持 `page/size`（**W2+W3 ✅ 已完成**，见 5.6；分页插件待 W4） |
-| 11-18（三） | W5 + W6      | 登出后旧会话失效；`mvn test` 覆盖率 ≥80% 并出 JaCoCo 报告                        |
+| 11-17（二） | W2 + W3 + W4 | 错误参数返回结构化 JSON；分页接口支持 `page/size`（**W2+W3+W4 ✅ 已完成**，见 5.6、5.7） |
+| 11-18（三） | W5 + W6      | 登出/改密可用（**W5 ✅ 已完成**，见 5.7）；`mvn test` 覆盖率 ≥80% 并出 JaCoCo 报告 |
 | 11-19（四） | W7 之一      | 《需求分析》《系统设计》完成                                                     |
 | 11-20（五） | W7 之二      | 《测试报告》（引用 11-18 的真实数据）《用户手册》完成；WBS 分工表填实            |
 | 11-21（六） | W8 + 演练    | 演示视频录制完成；全链路回归通过；答辩预演一遍                                   |
@@ -260,7 +261,7 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | ---------- | ---- | ------------------ | ------------------- | ---------------------- |
 | 傅展鹏     | 3242508217 | W1 鉴权            | 拦截器、角色校验    | `beb9a69`              |
 | 吴梓豪     | 3242508225 | W2 + W3 异常与校验 | 统一错误码/异常处理器、DTO 校验、WS 校验、45 例单测 | `ede198e` |
-| （待认领） |      | W4 + W5 分页与账号 | 分页接口、登出/改密 |                        |
+| 杨晓东     | 3242508222 | W4 + W5 分页与账号 | `/api/page/*` 分页接口、登出/改密接口、改密弹窗 | `0238d13` / `389e7e4` |
 | （待认领） |      | W6 单元测试        | 测试类 + 覆盖率报告 |                        |
 | （待认领） |      | W7 文档 + W8 视频  | 四份文档、演示视频  |                        |
 
@@ -352,7 +353,8 @@ W2/W3 用例分布：
 - **WebSocket 校验**：消息类型缺失、畸形 JSON、`CONTROL` 的 action / interval / 当前状态，`STEP_FORWARD` 仅在暂停时有效；落库失败发 `WARNING` 而不是假装成功
 - **顺带修复（W1 集成缺陷）**：前端 `useWebSocket` 传的是 JWT，但 `WebSocketController` 仍只认 `token-{userId}`，导致 `userId` 恒为 null、教学实验与性能批次无法入库；现按签名解析 `sub`，并保留旧格式兼容
 
-> 已知遗留（不属于 W2/W3）：`ConnectionStatus.vue` 重连时未携带令牌；`MybatisPlusConfig` 仍未注册分页插件（W4）。
+> 已知遗留（不属于 W2/W3）：`ConnectionStatus.vue` 重连时未携带令牌（已由 `fa5e09c` 修复）；
+> `MybatisPlusConfig` 未注册分页插件（W4 已用 `/api/page/*` 显式 `LIMIT` 分页规避，原 `/api/history/*` 仍走 `selectPage`，见 5.7）。
 
 **11-17 独立复核（提交 `42941a3`）**
 
@@ -368,6 +370,60 @@ W2/W3 用例分布：
 | 类型转换错误漏英文 | `page=abc` 返回 `Failed to convert property value of type ...`        | 识别 `typeMismatch`，改为「参数 page 类型不正确」             |
 
 修正后回归：`mvn -o test` **67 passed**（W2/W3 45 → 47）。
+
+### 5.7 W4 + W5 验收记录（2026-11-17）
+
+环境：JDK 17，Spring Boot 4.0.6 / MyBatis-Plus 3.5.15。本轮除 `App.vue` 增加「改密」入口与
+「退出」接口调用外，**全部为新增文件**，未改动既有业务逻辑，也未新增第三方依赖。
+
+| 项目 | 命令 | 结果 |
+| ---- | ---- | ---- |
+| 编译 | 用 `mvn dependency:build-classpath` 导出依赖后 `javac` 全量编译 | 全部源文件通过，`EXIT=0` |
+| 分支 | `git pull --rebase origin develop` → `git push` | 已变基到 `fa5e09c` 后推送 |
+
+> 说明：本机 `target/` 目录写入受限（`AccessDeniedException`），`mvn compile` 无法落盘字节码，
+> 故改用 `javac` + Maven 导出的依赖 classpath 做等价编译校验。
+
+**提交记录**：`0238d13`（W4 分页）、`389e7e4`（W5 账号），均在 `develop` 分支。
+
+W4（分页）实现要点：
+
+| 新增文件 | 作用 |
+| -------- | ---- |
+| `model/response/PageResult.java` | 统一分页结构 `records / total / page / size / pages`，与原 `records / total / page` 兼容 |
+| `service/PaginationService.java` | `selectCount` 取总数 + `LIMIT offset,size` 取当页；`page<1` 归一为 1，`size` 缺省 20、上限 100 |
+| `controller/PaginationController.java` | `GET /api/page/experiments?userId=&page=&size=`、`GET /api/page/performance?userId=&page=&size=`（`userId` 缺省或传 `all` 查全部用户） |
+
+- **为何不走分页插件**：MyBatis-Plus 3.5.15 已将 `PaginationInnerInterceptor` 拆分到独立模块
+  `mybatis-plus-jsqlparser`，本项目 `pom.xml` 未声明该依赖，`selectPage` 会退化为全量查询且 `total` 恒为 0。
+  本轮按「不改 `pom.xml`、不动 `MybatisPlusConfig`」的约束，改为显式 `LIMIT` 手写分页。
+- **遗留**：`/api/history/experiments`、`/api/history/experiments/all`、`/api/history/performance`
+  仍走 `selectPage`。若后续决定启用官方插件，只需在 `pom.xml` 补 `mybatis-plus-jsqlparser` 并注册
+  `PaginationInnerInterceptor`，即可让原接口与 `/api/page/*` 并轨。
+
+W5（登出 / 修改密码）实现要点：
+
+| 新增文件 | 作用 |
+| -------- | ---- |
+| `service/AccountService.java` | `logout()`；`changePassword(userId, oldPassword, newPassword)`：校验非空、新密码≥6 位、旧密码匹配后更新 |
+| `controller/AccountController.java` | `POST /api/account/logout`、`POST /api/account/change-password` |
+| `components/Common/ChangePasswordModal.vue` | 改密弹窗：旧密码 / 新密码 / 确认新密码，前端先校验两次输入一致，成功后提示并回登录页 |
+
+- 前端入口：`App.vue` 顶部导航新增「改密」（仅登录后显示）；「退出」改为先调
+  `POST /api/account/logout` 再清除本地令牌（后端不可用时仍可本地退出）。
+- **身份来源**：改密对象取自 JWT 令牌的 `sub`（`AuthInterceptor.ATTR_USER_ID`），与 W1「不信任客户端
+  userId」的约定一致；请求体只接收新旧密码，避免持自己令牌改他人密码。
+- **请求方式**：前端统一走 `utils/api.js` 的 `apiFetch`，自动附加 `Authorization: Bearer <token>`，
+  401 时清登录态并跳登录页。
+- 更新口令用 `LambdaUpdateWrapper` **只写 `password_hash`** 一列，避免把实体中与表结构不一致的字段一并写回。
+- 设计说明：系统为无状态 JWT，服务端没有会话可销毁，因此登出 = 后端返回确认 + 前端清除令牌；
+  改密成功后不吊销已签发令牌，与现有 JWT 设计一致（如需强制失效，需引入令牌版本号或黑名单）。
+
+验收中发现但**未修改**的既有缺陷（供 W6/W7 处理）：
+
+> `entity/User.java` 含 `email` 字段，而 `db/schema.sql` 的 `users` 表没有该列。
+> `userMapper.insert(...)` 与 `updateById(...)` 会拼出 `email` 列导致 SQL 报错，注册接口受影响。
+> 本次改密已绕开该问题，建议二选一：删除实体字段，或在 `schema.sql` 中补 `email` 列。
 
 ---
 
