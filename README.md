@@ -213,9 +213,49 @@ SortingAlgorithmVisualizationSystem/
 - `GET /api/admin/backups` — 备份文件列表
 - `POST /api/admin/cleanup` — 清空实验数据（仅 `admin`）
 
+### 统一错误响应与参数校验（W2/W3）
+
+失败响应的 HTTP 状态码与错误体一致，前端可直接取 `message` 展示、取 `details` 定位字段：
+
+```json
+{
+  "success": false,
+  "timestamp": 1763380800000,
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "用户名长度必须为 3-50 个字符",
+  "path": "/api/auth/register",
+  "details": [{ "field": "username", "message": "用户名长度必须为 3-50 个字符" }]
+}
+```
+
+| 错误码                                                                                          | HTTP      | 场景                                   |
+| ----------------------------------------------------------------------------------------------- | --------- | -------------------------------------- |
+| `VALIDATION_ERROR` / `MISSING_PARAMETER` / `TYPE_MISMATCH`                                      | 400       | 字段规则不满足、缺参、类型不匹配       |
+| `MALFORMED_JSON`                                                                                | 400       | 请求体不是合法 JSON                    |
+| `INVALID_DATA_TYPE` / `UNSUPPORTED_ALGORITHM` / `DATA_TOO_LARGE` / `INVALID_INTERVAL` / `INVALID_DATE` / `INVALID_ACTION` | 400       | 排序请求与查询参数取值非法             |
+| `INVALID_CREDENTIALS` / `UNAUTHORIZED` / `TOKEN_EXPIRED` / `TOKEN_INVALID`                      | 401       | 凭证错误或令牌失效                     |
+| `FORBIDDEN`                                                                                     | 403       | 角色不足                               |
+| `NOT_FOUND` / `EXPERIMENT_NOT_FOUND` / `BATCH_NOT_FOUND`                                        | 404       | 资源不存在                             |
+| `METHOD_NOT_ALLOWED` / `UNSUPPORTED_MEDIA_TYPE`                                                 | 405 / 415 | 方法或内容类型不支持                   |
+| `USERNAME_EXISTS` / `ALREADY_PROCESSING` / `NO_ACTIVE_TASK` / `INVALID_STATE`                   | 409       | 唯一约束或状态冲突                     |
+| `INTERNAL_ERROR` / `DATABASE_ERROR` / `ALGORITHM_ERROR` / `BACKUP_FAILED` / `CLEANUP_FAILED`     | 500       | 服务端异常（只回通用文案，细节见日志） |
+
+校验规则摘要：
+
+| 位置       | 规则                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| 注册       | 用户名 3–50 字符、密码 6–64 字符，角色只能是 `student` / `teacher`（传 `admin` 返回 400）                 |
+| 登录       | 用户名/密码非空；凭证错误返回 401                                                                        |
+| 分页       | `page ≥ 1`，`size` 1–100                                                                                 |
+| 历史记录   | `expId` / `batchId` 必须为正整数且存在，否则 404；`start` / `end` 为 `yyyy-MM-dd`；`type` ∈ `TEACHING` / `PERFORMANCE` |
+| WebSocket  | `mode` / `algorithm` / `dataType` 白名单；数据量教学 1–100、性能 1–1000；`interval` 100–5000；`distribution`、`comparatorInfo` 白名单；Person 的 age/score/email 规则 |
+
+WebSocket 的 `ERROR` 消息同样携带 `code` 与 `requestId`，错误码与上表一致。
+
 ### WebSocket
 
-- `ws://localhost:8080/websocket` — 可视化会话通道，与 HTTP 鉴权相互独立（演示用，不校验令牌）
+- `ws://localhost:8080/websocket?token=<JWT>` — 可视化会话通道；握手时可用 `token` 参数绑定用户身份（不强制校验，未登录也可浏览，但教学实验与性能结果不会入库）
 
 ## License
 
@@ -248,7 +288,8 @@ MIT
 | `STEP_UPDATE`        | 排序步骤更新（含数据快照、高亮信息、统计） |
 | `PERFORMANCE_RESULT` | 性能测试结果                               |
 | `SORT_COMPLETE`      | 排序完成（含最终统计）                     |
-| `ERROR`              | 错误信息                                   |
+| `ERROR`              | 错误信息（含 `code` / `requestId`）        |
+| `WARNING`            | 非致命提示（如排序完成但结果未能落库）     |
 | `CONNECTED`          | WebSocket 连接成功                         |
 | `PAUSED`             | 排序已暂停确认                             |
 | `RESUMED`            | 排序已继续确认                             |
@@ -277,7 +318,13 @@ MIT
 ```bash
 # 鉴权相关单元测试（JWT + 两个拦截器，20 个用例，不依赖数据库）
 mvn test -Dtest=JwtUtilTest,AuthInterceptorTest,RoleInterceptorTest
+
+# 异常处理与参数校验（W2/W3，45 个用例，不依赖数据库）
+mvn test -Dtest=DataValidatorTest,GlobalExceptionHandlerTest,UserServiceTest,WebSocketControllerAuthTest
 ```
+
+> 全部测试类都不需要启动 Spring 容器或连接 MySQL；`SortVisualizationApplication` 的 `contextLoads`
+> 才是需要数据库的集成测试，跑全量 `mvn test` 前请先配置好 `spring.datasource.password`。
 
 ### 鉴权实现位置
 

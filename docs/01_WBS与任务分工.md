@@ -32,6 +32,7 @@
 | v1.2 | 2026-11-16 | 按 git 证据修正里程碑：明确「1 月 HTML → 5 月 Vue3 → 5-24 数据库集成 → 6 月文档化与加固」四段；补充 JWT 未落地的说明 |
 | v1.3 | 2026-11-16 | 删除 W8（gitee 迁移）：仓库已在 gitee 建好，无需再作工作包；原 W9 顺延为 W8；新增 5.4 协作流程与仓库配置 |
 | v1.4 | 2026-11-16 | W1 完成并验收：补 5.3 认领行、5.5 验收记录；W4 补记「分页插件未注册」实测缺陷 |
+| v1.5 | 2026-11-17 | W2+W3 完成并验收：补 5.6 编译与测试记录；更正 W3「0 处调用」的过时描述；补 5.3 认领行与提交号；更新风险表 |
 
 ---
 
@@ -232,8 +233,8 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | 编号   | 工作包                                 | 现状（已核查）                                                      | 为什么优先                                                      |
 | ------ | -------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **W1** | 鉴权拦截器 + Admin 角色校验            | ~~无任何 `HandlerInterceptor`~~ **已完成**（提交 `beb9a69`）        | `/api/admin/cleanup` 未鉴权即可 `TRUNCATE` 5 张表，是最高风险项 |
-| **W2** | 全局异常处理                           | 无 `@RestControllerAdvice`                                          | 评分明文考「异常处理」                                          |
-| **W3** | 参数校验接入                           | `util/DataValidator` 已写但**0 处调用**                             | 死代码转为有效代码，同时补「正确性」                            |
+| **W2** | 全局异常处理                           | ~~无 `@RestControllerAdvice`~~ **已完成**（提交 `ede198e`，见 5.6） | 评分明文考「异常处理」                                          |
+| **W3** | 参数校验接入                           | ~~`util/DataValidator` 已写但 0 处调用~~ 实际早已在 `MessageHandler` 调用，真正缺口是覆盖面：CONTROL、消息类型、分布/比较器字段未校验，且 REST 接口 0 处 Bean Validation。**已完成**（提交 `ede198e`，见 5.6） | 死代码转为有效代码，同时补「正确性」                            |
 | **W4** | 分页                                   | 未注册分页插件：`selectPage` 全量返回且 `total` 恒为 0（W1 验收实测） | 完整性 + 性能                                                   |
 | **W5** | 登出 / 修改密码                        | 无 `logout`、无 `changePassword`                                    | 用户手册必备章节                                                |
 | **W6** | 单元测试至覆盖率 ≥80%                  | `src/test` 仅 1 个 13 行空壳                                        | 「覆盖率 ≥80% 满分，低于每降 1% 扣 0.3 分」——提分最确定         |
@@ -245,7 +246,7 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | 日期        | 工作包       | 交付标准（当天必须达成）                                                         |
 | ----------- | ------------ | -------------------------------------------------------------------------------- |
 | 11-16（一） | W1           | 未登录访问 `/api/admin/stats` 返回 401；非管理员返回 403（**✅ 已完成**，见 5.5） |
-| 11-17（二） | W2 + W3 + W4 | 错误参数返回结构化 JSON；`/api/history/experiments` 支持 `page/size`             |
+| 11-17（二） | W2 + W3 + W4 | 错误参数返回结构化 JSON；`/api/history/experiments` 支持 `page/size`（**W2+W3 ✅ 已完成**，见 5.6；分页插件待 W4） |
 | 11-18（三） | W5 + W6      | 登出后旧会话失效；`mvn test` 覆盖率 ≥80% 并出 JaCoCo 报告                        |
 | 11-19（四） | W7 之一      | 《需求分析》《系统设计》完成                                                     |
 | 11-20（五） | W7 之二      | 《测试报告》（引用 11-18 的真实数据）《用户手册》完成；WBS 分工表填实            |
@@ -257,7 +258,7 @@ git log --since='2026-06-01' --until='2026-06-30' --format='%s' | cut -c1-6 | so
 | 成员       | 学号 | 认领工作包         | 计划交付            | gitee 提交（完成后填） |
 | ---------- | ---- | ------------------ | ------------------- | ---------------------- |
 | 傅展鹏     | 3242508217 | W1 鉴权            | 拦截器、角色校验    | `beb9a69`              |
-| （待认领） |      | W2 + W3 异常与校验 | advice、校验接入    |                        |
+| 吴梓豪     | 3242508225 | W2 + W3 异常与校验 | 统一错误码/异常处理器、DTO 校验、WS 校验、45 例单测 | `ede198e` |
 | （待认领） |      | W4 + W5 分页与账号 | 分页接口、登出/改密 |                        |
 | （待认领） |      | W6 单元测试        | 测试类 + 覆盖率报告 |                        |
 | （待认领） |      | W7 文档 + W8 视频  | 四份文档、演示视频  |                        |
@@ -323,6 +324,35 @@ git push              # 一次推到 gitee + github 两个地址
 > 根因是 `MybatisPlusConfig` 没有注册 `PaginationInnerInterceptor`，`selectPage` 退化成全量查询。
 > W4 修复时需一并引入 `mybatis-plus-jsqlparser` 依赖，否则分页插件在 3.5.15 上不生效。
 
+### 5.6 W2 + W3 验收记录（2026-11-17）
+
+环境：JDK 17 + Maven 3.9.6 + Spring Boot 4.0.6 / Spring Framework 7.0.7 / MyBatis-Plus 3.5.15。
+按计划本轮只做实跑编译与单元测试；HTTP / WebSocket 冒烟测试并入 11-21 的全链路回归。
+
+| 项目 | 命令                                                                 | 结果                            |
+| ---- | -------------------------------------------------------------------- | ------------------------------- |
+| 编译 | `mvn -DskipTests compile`                                            | 67 个源文件，BUILD SUCCESS      |
+| 单测 | `mvn test -Dtest=DataValidatorTest,GlobalExceptionHandlerTest,UserServiceTest,WebSocketControllerAuthTest,JwtUtilTest,AuthInterceptorTest,RoleInterceptorTest` | **65 passed**（W2/W3 45 + W1 原有 20） |
+
+W2/W3 用例分布：
+
+| 测试类                       | 用例数 | 覆盖点                                                                                     |
+| ---------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| `DataValidatorTest`          | 29     | 模式/算法/类型/上限、null 元素、小数冒整数、NaN/Infinity、Person 字段、分布与比较器白名单、convertData |
+| `GlobalExceptionHandlerTest` | 7      | 400 字段明细、409 重复用户名、401 凭证错误、畸形 JSON、500 不泄露内部信息                  |
+| `UserServiceTest`            | 5      | 重复注册 409、登录失败 401、注册成功、JWT 三段式、角色白名单                                |
+| `WebSocketControllerAuthTest`| 4      | JWT 解析 userId、旧 `token-` 兼容、空令牌、伪造令牌                                         |
+
+实现要点：
+
+- **错误契约**：`ErrorCode`（33 个码，code + HTTP 状态 + 默认中文文案）+ `ApiException` + `ApiError{success:false,timestamp,status,code,message,path,requestId,details}`，与 W1 的 `AuthErrors` 形状一致；WebSocket 复用同一套错误码
+- **异常映射**：业务异常、`@Valid` 失败、缺参、类型不匹配、畸形 JSON、404/405/415、唯一键/完整性冲突、`DataAccessException`、兜底 500；500 一律脱敏，堆栈只入日志
+- **REST 校验**：`RegisterRequest` / `LoginRequest` / `PageQuery` + `@Valid`，分页参数用 `@ModelAttribute` 绑定
+- **WebSocket 校验**：消息类型缺失、畸形 JSON、`CONTROL` 的 action / interval / 当前状态，`STEP_FORWARD` 仅在暂停时有效；落库失败发 `WARNING` 而不是假装成功
+- **顺带修复（W1 集成缺陷）**：前端 `useWebSocket` 传的是 JWT，但 `WebSocketController` 仍只认 `token-{userId}`，导致 `userId` 恒为 null、教学实验与性能批次无法入库；现按签名解析 `sub`，并保留旧格式兼容
+
+> 已知遗留（不属于 W2/W3）：`ConnectionStatus.vue` 重连时未携带令牌；`MybatisPlusConfig` 仍未注册分页插件（W4）。
+
 ---
 
 ## 六、交付物清单（对照评分标准 8 项）
@@ -364,5 +394,5 @@ git push              # 一次推到 gitee + github 两个地址
 | 团队分工与 git 作者不一致  | 若被认定伪造，该项计 0 分                                 | 如实填写，必要时说明协作方式                             |
 | Spring Boot 4 环境依赖较新 | 答辩机器可能跑不起来                                      | 交付已构建好的 jar（含内嵌 Tomcat），只需装 JDK 17       |
 | 前端需 Node 构建           | 评阅者可能直接看源码                                      | 构建产物已提交到 `src/main/resources/static`，无需再构建 |
-| `docs/` 当前尚未纳入版本库 | 第 3、5–8 项交付物在 gitee 提交记录里查不到               | 每完成一份文档即 `git add docs/` 提交并推送              |
+| `docs/` 仅 WBS 已入库，其余 4 份尚未建立 | 第 5–8 项交付物在 gitee 提交记录里查不到 | 每完成一份文档即 `git add docs/` 提交并推送 |
 | `jwt.secret` 明文写在配置文件 | 评阅者可能指出密钥不应入库                                | 课程环境可接受，答辩时说明生产应改为环境变量注入         |
