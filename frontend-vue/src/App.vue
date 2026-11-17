@@ -11,7 +11,8 @@
                 <router-link to="/history">实验历史</router-link>
                 <router-link to="/admin" v-if="authStore.isAdmin">管理</router-link>
                 <template v-if="authStore.isLoggedIn">
-                    <a href="#" @click.prevent="authStore.logout(); $router.push('/login')">退出</a>
+                    <a href="#" @click.prevent="showChangePwd = true">改密</a>
+                    <a href="#" @click.prevent="handleLogout">退出</a>
                 </template>
                 <template v-else>
                     <router-link to="/login" class="login-link">登录</router-link>
@@ -19,14 +20,44 @@
             </span>
         </nav>
         <router-view />
+        <ChangePasswordModal
+            :visible="showChangePwd"
+            @close="showChangePwd = false"
+            @changed="onPasswordChanged"
+        />
     </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
-import { useRoute } from 'vue-router'
+import { apiFetch } from './utils/api'
+import ChangePasswordModal from './components/Common/ChangePasswordModal.vue'
+
 const authStore = useAuthStore()
 const $route = useRoute()
+const $router = useRouter()
+
+const showChangePwd = ref(false)
+
+// 退出登录：调用后端登出接口后清除本地登录状态
+const handleLogout = async () => {
+    try {
+        await apiFetch('/api/account/logout', { method: 'POST' })
+    } catch (e) {
+        // 后端不可用时仍然允许本地退出
+    }
+    authStore.logout()
+    $router.push('/login')
+}
+
+// 改密成功后需要重新登录
+const onPasswordChanged = () => {
+    showChangePwd.value = false
+    authStore.logout()
+    $router.push('/login')
+}
 </script>
 
 <style scoped>
