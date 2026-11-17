@@ -20,8 +20,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useWebSocket } from '../../composables/useWebSocket'
+import { useAuthStore } from '../../stores/auth'
 
 const { isConnected, connect } = useWebSocket()
+const authStore = useAuthStore()
 const serverUrl = ref('ws://localhost:8080/websocket')
 
 const connectToServer = () => {
@@ -29,6 +31,7 @@ const connectToServer = () => {
         alert('已经连接到服务器')   // 或使用 uiStore.showErrorModal
         return
     }
-    connect(serverUrl.value)
+    // 必须带上令牌：否则后端解析不到 userId，本次实验与性能数据不会入库
+    connect(serverUrl.value, authStore.token)
 }
 </script>
