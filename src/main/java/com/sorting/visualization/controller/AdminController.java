@@ -1,15 +1,27 @@
 package com.sorting.visualization.controller;
 
 import com.sorting.visualization.entity.AlgorithmStat;
+import com.sorting.visualization.exception.ApiException;
+import com.sorting.visualization.exception.ErrorCode;
 import com.sorting.visualization.mapper.AlgorithmStatMapper;
 import com.sorting.visualization.service.BackupService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -39,48 +51,58 @@ public class AdminController {
 
     /** 生成用户实验报告（存储过程，返回3个结果集） */
     @GetMapping("/report")
-    public List<List<Map<String, Object>>> getReport(@RequestParam String userId) {
+    public List<List<Map<String, Object>>> getReport(@RequestParam(required = false) String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new ApiException(ErrorCode.MISSING_PARAMETER, "缺少必要参数: userId");
+        }
+        String normalizedUserId = userId.trim();
+
         List<List<Map<String, Object>>> allResults = new ArrayList<>();
         jdbcTemplate.execute((ConnectionCallback<Void>) con -> {
             var cs = con.prepareCall("{CALL sp_user_report(?)}");
-            cs.setString(1, userId);
-            boolean hasResults = cs.execute();
-            // 遍历所有结果集
-            while (true) {
-                if (hasResults) {
-                    var rs = cs.getResultSet();
-                    var columns = rs.getMetaData().getColumnCount();
-                    var rows = new ArrayList<Map<String, Object>>();
-                    while (rs.next()) {
-                        Map<String, Object> row = new LinkedHashMap<>();
-                        for (int i = 1; i <= columns; i++) {
-                            row.put(rs.getMetaData().getColumnLabel(i), rs.getObject(i));
+            try {
+                cs.setString(1, normalizedUserId);
+                boolean hasResults = cs.execute();
+                // 遍历所有结果集
+                while (true) {
+                    if (hasResults) {
+                        var rs = cs.getResultSet();
+                        var columns = rs.getMetaData().getColumnCount();
+                        var rows = new ArrayList<Map<String, Object>>();
+                        while (rs.next()) {
+                            Map<String, Object> row = new LinkedHashMap<>();
+                            for (int i = 1; i <= columns; i++) {
+                                row.put(rs.getMetaData().getColumnLabel(i), rs.getObject(i));
+                            }
+                            rows.add(row);
                         }
-                        rows.add(row);
+                        allResults.add(rows);
                     }
-                    allResults.add(rows);
+                    if (cs.getMoreResults()) {
+                        hasResults = true;
+                    } else if (cs.getUpdateCount() == -1) {
+                        break;
+                    } else {
+                        hasResults = false;
+                    }
                 }
-                if (cs.getMoreResults()) {
-                    hasResults = true;
-                } else if (cs.getUpdateCount() == -1) {
-                    break;
-                } else {
-                    hasResults = false;
-                }
+            } finally {
+                cs.close();
             }
             return null;
         });
         return allResults;
     }
 
-    /** 触发备份 */
+    /** 触发备份（W2：失败返回 500 BACKUP_FAILED，不再把异常信息原样吐给前端） */
     @PostMapping("/backup")
     public Map<String, Object> backup() {
         try {
             String filename = backupService.exportToSql();
             return Map.of("success", true, "filename", filename);
-        } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
+        } catch (IOException e) {
+            log.error("数据库备份失败", e);
+            throw new ApiException(ErrorCode.BACKUP_FAILED, ErrorCode.BACKUP_FAILED.getDefaultMessage(), null, e);
         }
     }
 
@@ -97,7 +119,8 @@ public class AdminController {
             backupService.truncateExperimentData();
             return Map.of("success", true, "message", "实验数据已清空，users和algorithms保留");
         } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
+            log.error("清理实验数据失败", e);
+            throw new ApiException(ErrorCode.CLEANUP_FAILED, ErrorCode.CLEANUP_FAILED.getDefaultMessage(), null, e);
         }
     }
 }

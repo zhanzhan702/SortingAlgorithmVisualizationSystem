@@ -1,24 +1,31 @@
 package com.sorting.visualization.model.response;
 
+import com.sorting.visualization.exception.ErrorCode;
 import lombok.Data;
 
+/**
+ * WebSocket 错误消息体（type 固定为 {@code ERROR}）。
+ *
+ * <p>错误码统一来自 {@link ErrorCode}，与 REST 的 {@link ApiError} 共用同一套语义；
+ * 前端可以用 {@code requestId} 把错误关联回具体请求。</p>
+ */
 @Data
 public class ErrorResponse {
+
     private String requestId;
     private String type = "ERROR";
     private String message;
-    private String code;               // 错误码
-    private Object details;            // 错误详情
+    private String code;
+    private Object details;
     private Long timestamp;
 
-    // 错误码常量
-    public static class ErrorCode {
-        public static final String VALIDATION_ERROR = "VALIDATION_ERROR";
-        public static final String ALGORITHM_ERROR = "ALGORITHM_ERROR";
-        public static final String DATA_TOO_LARGE = "DATA_TOO_LARGE";
-        public static final String INVALID_DATA_TYPE = "INVALID_DATA_TYPE";
-        public static final String UNSUPPORTED_ALGORITHM = "UNSUPPORTED_ALGORITHM";
-        public static final String WEBSOCKET_ERROR = "WEBSOCKET_ERROR";
-        public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
+    public static ErrorResponse of(ErrorCode errorCode, String message, String requestId) {
+        ErrorResponse response = new ErrorResponse();
+        response.setRequestId(requestId);
+        response.setCode(errorCode.getCode());
+        response.setMessage(message == null || message.isBlank()
+                ? errorCode.getDefaultMessage() : message);
+        response.setTimestamp(System.currentTimeMillis());
+        return response;
     }
 }

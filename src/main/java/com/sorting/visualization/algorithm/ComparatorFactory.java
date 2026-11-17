@@ -1,5 +1,6 @@
 package com.sorting.visualization.algorithm;
 
+import com.sorting.visualization.model.DataType;
 import com.sorting.visualization.model.Person;
 import com.sorting.visualization.model.request.SortRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -10,47 +11,36 @@ import java.util.Comparator;
 public class ComparatorFactory {
 
     /**
-     * 创建比较器
+     * 创建比较器。
+     *
+     * <p>参数缺省时使用安全默认值（升序、数值比较、Person 按 score），
+     * 不再因为 {@code method} 为 null 而抛 NPE；空值校验由 W3 的 DataValidator 负责。</p>
      *
      * @param dataType       数据类型
      * @param comparatorInfo 比较器信息
      * @return Comparator<Object>
      */
-    @SuppressWarnings("unchecked")
     public static Comparator<Object> createComparator(String dataType, SortRequest.ComparatorInfo comparatorInfo) {
         if (comparatorInfo == null) {
             comparatorInfo = new SortRequest.ComparatorInfo();
-            comparatorInfo.setDirection("ascending");
-            comparatorInfo.setMethod("numeric");
         }
 
         String direction = comparatorInfo.getDirection();
+        boolean ascending = direction == null || direction.isBlank()
+                || "ascending".equalsIgnoreCase(direction.trim());
+
         String method = comparatorInfo.getMethod();
-        boolean ascending = "ascending".equals(direction);
+        method = (method == null || method.isBlank()) ? "numeric" : method.trim().toLowerCase();
 
-        // 规范化数据类型
-        String normalizedType = normalizeDataType(dataType);
+        String structField = comparatorInfo.getStructField();
+        structField = (structField == null || structField.isBlank()) ? "score" : structField.trim().toLowerCase();
 
-        // Person类型比较器
-        if ("PERSON".equalsIgnoreCase(normalizedType)) {
-            return createPersonComparator(ascending, method, comparatorInfo.getStructField());
+        if (DataType.from(dataType) == DataType.PERSON) {
+            return createPersonComparator(ascending, method, structField);
         }
 
         // 数值类型比较器（Integer, Double）
         return createNumericComparator(ascending, method);
-    }
-
-    /**
-     * 规范化数据类型
-     */
-    private static String normalizeDataType(String dataType) {
-        if (dataType == null) return null;
-
-        String type = dataType.toUpperCase();
-        if ("INT".equals(type)) {
-            return "INTEGER";
-        }
-        return type;
     }
 
     /**
