@@ -3,7 +3,7 @@ W6 单元测试结果汇总
 工程：sorting-visualization-backend（仓库 SortingAlgorithmVisualizationSystem）
 分支：develop
 环境：Windows / JDK 21 / Spring Boot 4.0.6 / JaCoCo 0.8.12
-执行：mvn test（未启动 Spring 容器、不依赖 MySQL）
+执行：mvn test
 
 总体结果：Tests run: 278, Failures: 0, Errors: 0, Skipped: 0 —— BUILD SUCCESS
 

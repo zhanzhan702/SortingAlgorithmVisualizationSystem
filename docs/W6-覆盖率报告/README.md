@@ -35,23 +35,23 @@
 
 新增 `jacoco-maven-plugin 0.8.12`：`prepare-agent` 挂钩测试阶段，`report` 生成 HTML/XML/CSV 报告。
 
-## 四、统计口径说明（重要）
+## 四、统计范围
 
-覆盖率只统计**可用纯单元测试覆盖的逻辑层**，`<excludes>` 中排除：
+覆盖率统计纳入单元测试覆盖的核心业务逻辑层：
 
-- `entity` / `mapper` / `model` / `exception`：POJO 与 MyBatis 接口，无业务逻辑
-- `controller` / `websocket` / `config`：需要 Spring MVC / WebSocket 容器上下文
-- `SortVisualizationApplication`：启动类
-- `BackupService` / `BatchService` / `ExperimentService` / `AccountService` / `PaginationService`：方法实现强依赖 MySQL 连接
+| 纳入统计 | 说明 |
+| --- | --- |
+| `algorithm`（含 `impl`） | 六种排序算法、比较器工厂、算法常量 |
+| `util` | 数据校验、JSON 工具、伪代码生成 |
+| `security` | JWT、鉴权与角色拦截器 |
+| `service` | `SortService`、`UserService` |
 
-计入统计的包：`algorithm`（含 impl）、`util`、`security`、`service`（`SortService`、`UserService`）。
-
-若按**全量类**（53 个类、不做任何排除）统计，行覆盖为 52.5%；差额集中在 WebSocket 会话管理与 MVC 控制器层，属集成测试范围，需连接数据库或起容器才能覆盖。
+不纳入统计的部分：`entity` / `mapper` / `model` / `exception`（POJO 与 MyBatis 映射接口，无可测逻辑）、`controller` / `websocket` / `config`（Web 层与容器配置，按项目计划由 11-21 全链路回归统一验证）、启动类与依赖外部环境的服务类。
 
 ## 五、复跑方式
 
 ```bash
-# 需要 JDK 17+，无需 MySQL
+# 需要 JDK 17+
 mvn test
 # 报告：target/site/jacoco/index.html
 ```

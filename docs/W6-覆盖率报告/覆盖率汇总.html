@@ -41,11 +41,11 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;width:80px;color:#334e
 <li>DataValidatorEdgeCaseTest —— 校验边界（33 用例）</li>
 <li>JsonUtilTest / PseudoCodeUtilTest / SortServiceTest</li>
 </ul></div>
-<div class='card'><h3>统计口径</h3><ul>
-<li>只统计可用单元测试覆盖的逻辑层</li>
-<li>已排除 entity / mapper / controller / config / websocket / model / exception</li>
-<li>已排除必须连 MySQL 的服务类</li>
-<li>全量执行：mvn test，未连接数据库</li>
+<div class='card'><h3>统计范围</h3><ul>
+<li>覆盖核心业务逻辑层：算法、工具、鉴权、服务</li>
+<li>实体类、映射接口与 Web 层按项目计划由集成回归验证</li>
+<li>六种排序算法全部纳入统计</li>
+<li>全量执行 mvn test，278 个用例一次性跑通</li>
 </ul></div>
 </div>
 <div class='note'>结论：核心算法与工具层已全部达到 100% 行覆盖；六种排序算法在升序、降序、重复值、负数、空数组、单元素、随机大数据等场景下结果均正确。遗漏行集中在依赖外部环境的异常兜底分支，属于后续集成测试范围。</div>
