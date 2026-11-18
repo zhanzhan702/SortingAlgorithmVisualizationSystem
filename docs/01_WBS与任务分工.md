@@ -2,7 +2,7 @@
 
 > 项目：排序算法可视化教学与实验数据管理平台
 > 课程：Java 高级编程（33252070）· 期末项目综合实践
-> 文档版本：v1.7（结项期补编）　整理日期：2026-11-17
+> 文档版本：v1.8（结项期补编）　整理日期：2026-11-18
 
 ---
 
@@ -35,6 +35,7 @@
 | v1.5 | 2026-11-17 | W2+W3 完成并验收：补 5.6 编译与测试记录；更正 W3「0 处调用」的过时描述；补 5.3 认领行与提交号；更新风险表 |
 | v1.6 | 2026-11-17 | W2/W3 独立复核：补真实 HTTP/WebSocket 复测结论与两处契约修正（`42941a3`） |
 | v1.7 | 2026-11-17 | W4+W5 完成并验收：补 5.7 记录（`/api/page/*` 分页、登出/改密接口与弹窗）；更新 5.1/5.2 状态、5.3 认领行与提交号 |
+| v1.8 | 2026-11-18 | 合并后集成复核：补 5.8（无本地冲突的说明、4 处复核补丁、实测矩阵）；更正 5.7 中 email 字段与分页范围的表述 |
 
 ---
 
@@ -392,7 +393,7 @@ W4（分页）实现要点：
 | -------- | ---- |
 | `model/response/PageResult.java` | 统一分页结构 `records / total / page / size / pages`，与原 `records / total / page` 兼容 |
 | `service/PaginationService.java` | `selectCount` 取总数 + `LIMIT offset,size` 取当页；`page<1` 归一为 1，`size` 缺省 20、上限 100 |
-| `controller/PaginationController.java` | `GET /api/page/experiments?userId=&page=&size=`、`GET /api/page/performance?userId=&page=&size=`（`userId` 缺省或传 `all` 查全部用户） |
+| `controller/PaginationController.java` | `GET /api/page/experiments?userId=&page=&size=`、`GET /api/page/performance?userId=&page=&size=`（`userId` 缺省或传 `all` 表示全部用户，**该写法仅对教师/管理员生效**，学生恒查本人——见 5.8 复核补丁 ①） |
 
 - **为何不走分页插件**：MyBatis-Plus 3.5.15 已将 `PaginationInnerInterceptor` 拆分到独立模块
   `mybatis-plus-jsqlparser`，本项目 `pom.xml` 未声明该依赖，`selectPage` 会退化为全量查询且 `total` 恒为 0。
@@ -419,11 +420,65 @@ W5（登出 / 修改密码）实现要点：
 - 设计说明：系统为无状态 JWT，服务端没有会话可销毁，因此登出 = 后端返回确认 + 前端清除令牌；
   改密成功后不吊销已签发令牌，与现有 JWT 设计一致（如需强制失效，需引入令牌版本号或黑名单）。
 
-验收中发现但**未修改**的既有缺陷（供 W6/W7 处理）：
+验收中记录的既有缺陷（已在 5.8 复核中处理）：
 
-> `entity/User.java` 含 `email` 字段，而 `db/schema.sql` 的 `users` 表没有该列。
-> `userMapper.insert(...)` 与 `updateById(...)` 会拼出 `email` 列导致 SQL 报错，注册接口受影响。
-> 本次改密已绕开该问题，建议二选一：删除实体字段，或在 `schema.sql` 中补 `email` 列。
+> `entity/User.java` 含 `email` 字段，`db/schema.sql` 的 `users` 表没有该列（现网库却有）。
+> 实测注册并未失败 —— MyBatis-Plus 的 insert 会跳过值为 null 的字段；
+> 真正的问题是「实体 / 建表脚本 / 现网库」三者不一致：按 `schema.sql` 重建库后，
+> 一旦写入 `email` 就会报未知列。已在 `7532930` 给 `schema.sql` 补上该列。
+
+### 5.8 合并与集成复核（2026-11-18）
+
+**① 本次没有产生本地合并冲突**
+
+队友 W4/W5 的三次提交（`0238d13`、`389e7e4`、`c63c9c8`）都落在 `develop` 上，本地 `fa5e09c` 是它们的祖先，
+因此本地是纯 fast-forward，`git merge --ff-only` 零冲突。真正发生过冲突的是**队友那一侧**：
+gitee 历史里有两个合并提交 `f4df992 Merge branch 'develop'`、`6790267 合并远程更改`，
+说明他在推送前先拉取、手工解掉冲突后再提交，冲突结果已经固化在远端。
+
+**② "拉不动"的真实原因是代理，不是冲突**
+
+`git pull` 报的是 `Failed to connect to gitee.com:443 over proxy 127.0.0.1`：
+本机 git 配了全局代理 `http://127.0.0.1:7897`，而该端口当时没有服务监听。
+gitee / github 直连均可达，因此给本仓库加了 url 级代理覆盖（只影响本仓库）：
+
+```bash
+git config http.https://gitee.com.proxy ""
+git config http.https://github.com.proxy ""
+```
+
+**③ 复核补丁（4 处）**
+
+| # | 补丁 | 提交 | 问题 | 处理 |
+| - | ---- | ---- | ---- | ---- |
+| ① | 分页越权 | `de078ca` | `/api/page/*` 直接信任 query 里的 `userId`，学生传他人 id 或 `all` 就能翻全校记录，与 W1 在 `/api/history/*` 的收敛不一致 | 改为从令牌取身份：学生恒查本人，教师/管理员才允许 `all` 或指定用户；补 `PaginationScopeTest` 5 例 |
+| ② | 前端未打包 | `adf455b` | W4/W5 只改了 `frontend-vue/src`，`static/` 未重新构建，jar 里看不到改密弹窗，历史页也仍走旧接口 | 重新 `npm run build`；历史页与 store 改走 `/api/page/*`，分页与总数才真正生效 |
+| ③ | 建表脚本缺列 | `7532930` | `User.email` 在实体和现网库都有，`schema.sql` 没有 | `schema.sql` 补 `email VARCHAR(100)` |
+| ④ | 存储过程缺一个 | `aa832dd` | 交付脚本只建出 `sp_user_report`，现网库与文档都是 2 个 | 按现网定义补回 `sp_algorithm_stats` |
+
+**④ 实测矩阵（重新打包 jar 后逐个打接口）**
+
+| 场景 | 预期 | 实测 |
+| --- | --- | --- |
+| 学生 `GET /api/page/experiments?userId=all` | 只看本人 | `total=13`，记录内 `userId` 全为本人 |
+| 学生 `GET /api/page/experiments?userId=<admin>` | 只看本人 | `total=13`，同上 |
+| 教师 `userId=all&page=1&size=5` | 全部 + 正确分页 | `total=26`、`pages=6`、本页 5 条 |
+| 教师 `page=2&size=5` | 正确的第二页 | 5 条，首条 `expId=25` |
+| 教师 `/api/page/performance?userId=all` | 全部批次 | `total=60` |
+| 无令牌访问 `/api/page/*`、`/api/account/*` | 401 | 401 |
+| `POST /api/account/logout` | 200 | 200「已退出登录」 |
+| 改密（旧密码错） | 失败提示 | `success:false`「旧密码错误」 |
+| 改密（旧密码对）→ 新密码登录 | 新密码可用、旧密码失效 | 均符合 |
+| `schema.sql`+`data.sql`+`procedures.sql` 在全新库执行 | 7 表 + 2 视图 + 2 过程 + 2 触发器 | 全部建出，`CALL sp_algorithm_stats(...)` 正常返回 |
+
+单元测试：`mvn -o test` **72 passed**（新增 `PaginationScopeTest` 5 例）。
+
+**⑤ 仍未解决（留 W6/W7）**
+
+- `/api/history/experiments`、`.../all`、`.../performance` 仍走 `selectPage`，`total` 恒为 0；
+  前端已改走 `/api/page/*`，这三个接口目前只剩兼容用途。根治办法见 5.7 末尾（补 `mybatis-plus-jsqlparser`）。
+- `/api/account/change-password` 的业务失败仍返回 `200 + success:false`，与 W2 建立的「失败用 4xx」
+  契约不一致（前端按 `success` 判断，功能不受影响）。
 
 ---
 
