@@ -443,9 +443,14 @@ gitee 历史里有两个合并提交 `f4df992 Merge branch 'develop'`、`6790267
 gitee / github 直连均可达，因此给本仓库加了 url 级代理覆盖（只影响本仓库）：
 
 ```bash
+# gitee：长期直连（实测稳定，不再依赖代理客户端是否启动）
 git config http.https://gitee.com.proxy ""
-git config http.https://github.com.proxy ""
+# github：不覆盖，继续走代理——直连实测会被重置（Recv failure: Connection was reset）
 ```
+
+> 截至 2026-11-18 16:00，**gitee 已是最新**（`97cc577`）；github 镜像停在 `85ebf3a`（落后 5 个提交），
+> 原因是代理客户端当时未启动。待代理恢复后 `git push github develop` 一条命令即可补齐，
+> 不影响评分要求的 gitee 提交记录。
 
 **③ 复核补丁（4 处）**
 
