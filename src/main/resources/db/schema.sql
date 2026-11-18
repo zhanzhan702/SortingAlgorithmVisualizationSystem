@@ -17,6 +17,7 @@ CREATE TABLE users (
     username      VARCHAR(50)  NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role          ENUM('student','teacher','admin') DEFAULT 'student',
+    email         VARCHAR(100) DEFAULT NULL COMMENT '邮箱（可选，与 User 实体对齐）',
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
