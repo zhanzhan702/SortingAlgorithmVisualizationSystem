@@ -146,6 +146,47 @@
                 </configuration>
             </plugin>
 
+            <!-- W6：JaCoCo 覆盖率报告（mvn test 时同时产出 target/site/jacoco/index.html） -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <!-- 纯数据载体与外部依赖层，由接口契约/集成测试覆盖，不计入单元测试分母 -->
+                        <exclude>com/sorting/visualization/entity/**</exclude>
+                        <exclude>com/sorting/visualization/mapper/**</exclude>
+                        <exclude>com/sorting/visualization/controller/**</exclude>
+                        <exclude>com/sorting/visualization/config/**</exclude>
+                        <exclude>com/sorting/visualization/websocket/**</exclude>
+                        <exclude>com/sorting/visualization/model/**</exclude>
+                        <exclude>com/sorting/visualization/exception/**</exclude>
+                        <exclude>com/sorting/visualization/SortVisualizationApplication.class</exclude>
+                        <!-- 必须连接 MySQL 才能执行的服务类 -->
+                        <exclude>com/sorting/visualization/service/BackupService.class</exclude>
+                        <exclude>com/sorting/visualization/service/BatchService.class</exclude>
+                        <exclude>com/sorting/visualization/service/ExperimentService.class</exclude>
+                        <exclude>com/sorting/visualization/service/AccountService.class</exclude>
+                        <exclude>com/sorting/visualization/service/PaginationService.class</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
