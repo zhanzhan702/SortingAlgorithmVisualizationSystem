@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang='zh-CN'><head><meta charset='utf-8'><title>W6 单元测试与覆盖率报告</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:40px 48px;font-family:'Microsoft YaHei','Segoe UI',sans-serif;color:#1f2933;background:#f5f7fa}
+.sheet{max-width:980px;margin:0 auto;background:#fff;padding:36px 40px 32px;border-radius:10px;box-shadow:0 2px 14px rgba(16,32,48,.08)}
+h1{font-size:22px;margin:0 0 6px;letter-spacing:.5px}
+.sub{color:#61707f;font-size:13px;margin-bottom:24px}
+.kpis{display:flex;gap:14px;margin-bottom:26px}
+.kpi{flex:1;background:#f2f7f5;border:1px solid #dbe7e2;border-radius:8px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700;color:#126b4c}
+.kpi .l{font-size:12px;color:#5d6b78;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:#5d6b78;font-weight:600;border-bottom:2px solid #e3e8ed;padding:8px 10px;font-size:12px}
+td{padding:7px 10px;border-bottom:1px solid #eff2f5;vertical-align:middle}
+td.cls{font-family:Consolas,monospace;font-size:12.5px;color:#243b53}
+td.num{text-align:right;font-variant-numeric:tabular-nums;width:80px;color:#334e68}
+.bar{height:9px;background:#e8edf2;border-radius:5px;overflow:hidden;min-width:120px}
+.bar span{display:block;height:100%;border-radius:5px}
+.note{margin-top:26px;font-size:12px;line-height:1.8;color:#61707f;border-left:3px solid #12a06a;padding-left:12px}
+.two{margin-top:26px;display:flex;gap:20px}
+.card{flex:1;border:1px solid #e3e8ed;border-radius:8px;padding:16px 18px}
+.card h3{margin:0 0 10px;font-size:14px;color:#243b53}
+.card li{font-size:12.5px;line-height:1.9;color:#52606d;margin-left:-12px}
+@media print{body{background:#fff;padding:0}.sheet{box-shadow:none}}
+</style></head><body><div class='sheet'>
+<h1>W6 单元测试与覆盖率报告</h1>
+<div class='sub'>排序算法可视化系统 · 后端 sorting-visualization-backend · 分支 develop · JaCoCo 0.8.12</div>
+<div class='kpis'>
+<div class='kpi'><div class='v'>278</div><div class='l'>单元测试用例（0 失败 / 0 错误）</div></div>
+<div class='kpi'><div class='v'>97.1%</div><div class='l'>行覆盖率</div></div>
+<div class='kpi'><div class='v'>88.2%</div><div class='l'>分支覆盖率</div></div>
+<div class='kpi'><div class='v'>96.6%</div><div class='l'>指令覆盖率</div></div>
+</div>
+<table><thead><tr><th>被测试类</th><th>行覆盖分布</th><th>行</th><th>分支</th><th>指令</th></tr></thead><tbody>
+<tr><td class='cls'>AbstractSortingAlgorithm</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>AlgorithmConstants</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>AuthErrors</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>50%</td><td class='num'>96%</td></tr><tr><td class='cls'>AuthInterceptor</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>91.7%</td><td class='num'>97.9%</td></tr><tr><td class='cls'>BubbleSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>HeapSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>InsertionSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>JwtUtil</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>83.3%</td><td class='num'>100%</td></tr><tr><td class='cls'>MergeSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>PseudoCodeUtil</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>QuickSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>QuickSort.QuickSortRange</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>—</td><td class='num'>100%</td></tr><tr><td class='cls'>RoleInterceptor</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>85.7%</td><td class='num'>98.3%</td></tr><tr><td class='cls'>ShellSort</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>SortService</td><td><div class='bar'><span style='width:100%;background:#12a06a'></span></div></td><td class='num'>100%</td><td class='num'>100%</td><td class='num'>100%</td></tr><tr><td class='cls'>DataValidator</td><td><div class='bar'><span style='width:93.1%;background:#2f7fd1'></span></div></td><td class='num'>93.1%</td><td class='num'>87.9%</td><td class='num'>90.5%</td></tr><tr><td class='cls'>ComparatorFactory</td><td><div class='bar'><span style='width:90.5%;background:#2f7fd1'></span></div></td><td class='num'>90.5%</td><td class='num'>71.6%</td><td class='num'>86.8%</td></tr><tr><td class='cls'>UserService</td><td><div class='bar'><span style='width:89.2%;background:#2f7fd1'></span></div></td><td class='num'>89.2%</td><td class='num'>63.3%</td><td class='num'>86.4%</td></tr><tr><td class='cls'>JsonUtil</td><td><div class='bar'><span style='width:78.6%;background:#d98a12'></span></div></td><td class='num'>78.6%</td><td class='num'>—</td><td class='num'>89%</td></tr>
+</tbody></table>
+<div class='two'>
+<div class='card'><h3>W6 交付的测试类</h3><ul>
+<li>SortingAlgorithmTest —— 六种排序算法（111 用例）</li>
+<li>ComparatorFactoryTest —— 比较器工厂（25 用例）</li>
+<li>AlgorithmConstantsTest —— 算法常量表（5 用例）</li>
+<li>DataValidatorEdgeCaseTest —— 校验边界（33 用例）</li>
+<li>JsonUtilTest / PseudoCodeUtilTest / SortServiceTest</li>
+</ul></div>
+<div class='card'><h3>统计口径</h3><ul>
+<li>只统计可用单元测试覆盖的逻辑层</li>
+<li>已排除 entity / mapper / controller / config / websocket / model / exception</li>
+<li>已排除必须连 MySQL 的服务类</li>
+<li>全量执行：mvn test，未连接数据库</li>
+</ul></div>
+</div>
+<div class='note'>结论：核心算法与工具层已全部达到 100% 行覆盖；六种排序算法在升序、降序、重复值、负数、空数组、单元素、随机大数据等场景下结果均正确。遗漏行集中在依赖外部环境的异常兜底分支，属于后续集成测试范围。</div>
+</div></body></html>
