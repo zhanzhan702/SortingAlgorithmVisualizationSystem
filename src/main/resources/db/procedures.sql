@@ -117,7 +117,7 @@ LEFT JOIN (
 ) pb ON u.user_id = pb.user_id;
 
 -- ============================================================
--- 存储过程 (1个) — 由管理后台"用户报告"按钮调用
+-- 存储过程 (2个) — 由管理后台"用户报告"按钮调用
 -- ============================================================
 
 DROP PROCEDURE IF EXISTS sp_user_report;
@@ -216,5 +216,39 @@ BEGIN
     ) ps ON a.algo_id = ps.algo_id
     WHERE ts.teach_times > 0 OR ps.perf_times > 0
     ORDER BY teach_times DESC, perf_times DESC;
+END //
+DELIMITER ;
+
+-- ============================================================
+-- 存储过程 (2) — 按日期区间统计（数据库课程设计示例，管理端手动调用）
+-- ============================================================
+
+DROP PROCEDURE IF EXISTS sp_algorithm_stats;
+DELIMITER //
+CREATE PROCEDURE sp_algorithm_stats(IN start_date DATE, IN end_date DATE, IN stat_type VARCHAR(20))
+BEGIN
+    IF stat_type = 'TEACHING' THEN
+        SELECT a.algo_name AS 算法, COUNT(*) AS 实验次数,
+            ROUND(AVG(te.comparisons), 0) AS 平均比较次数,
+            ROUND(AVG(te.swaps), 0) AS 平均交换次数,
+            ROUND(AVG(te.time_micros), 0) AS 平均耗时_us,
+            SUM(CASE WHEN te.status = 'COMPLETED' THEN 1 ELSE 0 END) AS 完成次数
+        FROM teaching_experiments te
+        JOIN algorithms a ON te.algo_id = a.algo_id
+        WHERE te.started_at BETWEEN start_date AND DATE_ADD(end_date, INTERVAL 1 DAY)
+        GROUP BY a.algo_id, a.algo_name ORDER BY 实验次数 DESC;
+    ELSEIF stat_type = 'PERFORMANCE' THEN
+        SELECT a.algo_name AS 算法, COUNT(*) AS 测试次数,
+            ROUND(AVG(bd.comparisons), 0) AS 平均比较次数,
+            ROUND(AVG(bd.swaps), 0) AS 平均交换次数,
+            ROUND(AVG(bd.time_micros), 0) AS 平均耗时_us
+        FROM batch_details bd
+        JOIN performance_batches pb ON bd.batch_id = pb.batch_id
+        JOIN algorithms a ON bd.algo_id = a.algo_id
+        WHERE pb.created_at BETWEEN start_date AND DATE_ADD(end_date, INTERVAL 1 DAY)
+        GROUP BY a.algo_id, a.algo_name ORDER BY 平均耗时_us ASC;
+    ELSE
+        SELECT 'stat_type must be TEACHING or PERFORMANCE' AS 提示;
+    END IF;
 END //
 DELIMITER ;
