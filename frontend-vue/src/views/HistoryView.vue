@@ -204,7 +204,7 @@ const onShowAllChange = () => {
 const fetchAllExperiments = async () => {
   loading.value = true
   try {
-    const res = await apiFetch('/api/history/experiments/all?page=1&size=20')
+    const res = await apiFetch('/api/page/experiments?userId=all&page=1&size=20')
     const data = await res.json()
     historyStore.experiments = data.records || []
     historyStore.total = data.total || 0
@@ -286,7 +286,7 @@ const fetchPerfBatches = async () => {
   loading.value = true
   try {
     const userIdParam = showAll.value ? 'all' : (authStore.userId || '')
-    const res = await apiFetch(`/api/history/performance?userId=${userIdParam}`)
+    const res = await apiFetch(`/api/page/performance?userId=${userIdParam}`)
     const data = await res.json()
     // 补充每个批次的算法数和最优算法
     const batches = data.records || []

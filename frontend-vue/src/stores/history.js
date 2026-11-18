@@ -14,7 +14,7 @@ export const useHistoryStore = defineStore('history', {
       this.loading = true
       try {
         const res = await apiFetch(
-          `/api/history/experiments?userId=${userId}&page=${page}&size=${this.pageSize}`
+          `/api/page/experiments?userId=${userId}&page=${page}&size=${this.pageSize}`
         )
         const data = await res.json()
         this.experiments = data.records || []
