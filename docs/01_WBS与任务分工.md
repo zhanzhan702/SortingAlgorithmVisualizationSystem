@@ -520,7 +520,7 @@ git config http.https://gitee.com.proxy ""
 | --- | --------------------- | ------------------------------------------ | ------ |
 | 1   | 项目演示视频          | 独立提交（体积原因不入库，录制后随交付包一起交） | 待录制 |
 | 2   | 项目源码 + 数据库 SQL | 仓库根目录 + `src/main/resources/db/*.sql` | ✅     |
-| 3   | WBS 分解及任务安排    | 本文件                                     | ✅     |
+| 3   | WBS 分解及任务安排    | `docs/01_WBS与任务分工.docx`（仓库内另有 `.md` 源文件） | ✅     |
 | 4   | gitee 提交记录        | `https://gitee.com/zhanzhan702/SortingAlgorithmVisualizationSystem` | ✅     |
 | 5   | 需求分析              | `docs/02_需求分析说明书.docx`              | ✅     |
 | 6   | 系统设计              | `docs/03_详细设计说明书.docx`              | ✅     |
