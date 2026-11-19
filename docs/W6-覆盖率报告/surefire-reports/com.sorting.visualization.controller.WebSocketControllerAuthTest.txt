@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.sorting.visualization.controller.WebSocketControllerAuthTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.745 s -- in com.sorting.visualization.controller.WebSocketControllerAuthTest

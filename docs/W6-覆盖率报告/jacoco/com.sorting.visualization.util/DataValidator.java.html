@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.util</a> &gt; <span class="el_source">DataValidator.java</span></div><h1>DataValidator.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.util;
+
+import com.sorting.visualization.algorithm.AlgorithmConstants;
+import com.sorting.visualization.exception.ApiException;
+import com.sorting.visualization.exception.ErrorCode;
+import com.sorting.visualization.model.DataType;
+import com.sorting.visualization.model.Person;
+import com.sorting.visualization.model.request.SortRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+/**
+ * 排序请求的参数校验与数据转换（W3）。
+ *
+ * &lt;p&gt;校验失败统一抛出 {@link ApiException}，错误码来自 {@link ErrorCode}；
+ * WebSocket 入口会把它原样转换成 {@code ERROR} 消息，HTTP 入口由全局异常处理器转换。
+ * 校验通过后 {@link #convertData} 才做类型归一化，避免&quot;校验一套规则、转换另一套规则&quot;。&lt;/p&gt;
+ */
+<span class="fc" id="L26">@Slf4j</span>
+@Component
+<span class="fc" id="L28">public class DataValidator {</span>
+
+    /** 教学/性能模式允许的数据量上限由配置决定 */
+    @Value(&quot;${sorting.max-teaching-size:100}&quot;)
+    private int maxTeachingSize;
+
+    @Value(&quot;${sorting.max-performance-size:1000}&quot;)
+    private int maxPerformanceSize;
+
+    @Value(&quot;${person.age.min:0}&quot;)
+    private int minAge;
+
+    @Value(&quot;${person.age.max:120}&quot;)
+    private int maxAge;
+
+    @Value(&quot;${person.score.min:0}&quot;)
+    private double minScore;
+
+    @Value(&quot;${person.score.max:150}&quot;)
+    private double maxScore;
+
+    private static final int MIN_INTERVAL = 100;
+    private static final int MAX_INTERVAL = 5000;
+    private static final int MAX_NAME_LENGTH = 50;
+    private static final int MAX_EMAIL_LENGTH = 100;
+
+<span class="fc" id="L54">    private static final Set&lt;String&gt; SUPPORTED_MODES = Set.of(&quot;TEACHING&quot;, &quot;PERFORMANCE&quot;);</span>
+<span class="fc" id="L55">    private static final Set&lt;String&gt; SUPPORTED_DISTRIBUTIONS =</span>
+<span class="fc" id="L56">            Set.of(&quot;RANDOM&quot;, &quot;SORTED&quot;, &quot;REVERSE&quot;, &quot;DUPLICATE&quot;, &quot;NORMAL&quot;, &quot;CUSTOM&quot;);</span>
+<span class="fc" id="L57">    private static final Set&lt;String&gt; SUPPORTED_DIRECTIONS = Set.of(&quot;ASCENDING&quot;, &quot;DESCENDING&quot;);</span>
+<span class="fc" id="L58">    private static final Set&lt;String&gt; SUPPORTED_METHODS = Set.of(&quot;NUMERIC&quot;, &quot;ABSOLUTE&quot;, &quot;REVERSE&quot;);</span>
+<span class="fc" id="L59">    private static final Set&lt;String&gt; SUPPORTED_PERSON_FIELDS =</span>
+<span class="fc" id="L60">            Set.of(&quot;ID&quot;, &quot;NAME&quot;, &quot;AGE&quot;, &quot;SCORE&quot;, &quot;EMAIL&quot;);</span>
+
+    /** 前端使用 crypto.randomUUID()，允许字母、数字、下划线、短横线 */
+<span class="fc" id="L63">    private static final Pattern REQUEST_ID = Pattern.compile(&quot;^[A-Za-z0-9_-]{1,64}$&quot;);</span>
+
+    /**
+     * 邮箱只做&quot;形状&quot;校验：本地部分允许中文（前端 DataGenerator 生成的就是
+     * {@code 张.伟@gmail.com} 这类地址），因此不能只接受 ASCII。
+     */
+<span class="fc" id="L69">    private static final Pattern EMAIL = Pattern.compile(&quot;^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$&quot;);</span>
+
+    /**
+     * 验证排序请求。
+     */
+    public void validateSortRequest(SortRequest request) {
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (request == null) {</span>
+<span class="fc" id="L76">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;请求不能为空&quot;);</span>
+        }
+
+        // requestId 仅用于错误关联，允许缺省
+<span class="fc" id="L80">        String requestId = request.getRequestId();</span>
+<span class="fc bfc" id="L81" title="All 6 branches covered.">        if (requestId != null &amp;&amp; !requestId.isBlank() &amp;&amp; !REQUEST_ID.matcher(requestId.trim()).matches()) {</span>
+<span class="fc" id="L82">            throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+                    &quot;requestId 格式不正确（最长 64 位，仅允许字母、数字、下划线、短横线）&quot;);
+        }
+
+        // 模式
+<span class="fc" id="L87">        String mode = normalize(request.getMode());</span>
+<span class="fc bfc" id="L88" title="All 4 branches covered.">        if (mode == null || !SUPPORTED_MODES.contains(mode)) {</span>
+<span class="fc" id="L89">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无效的模式: &quot; + request.getMode());</span>
+        }
+
+        // 算法
+<span class="fc" id="L93">        String algorithm = normalize(request.getAlgorithm());</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (!AlgorithmConstants.isValidAlgorithm(algorithm)) {</span>
+<span class="fc" id="L95">            throw new ApiException(ErrorCode.UNSUPPORTED_ALGORITHM,</span>
+<span class="fc" id="L96">                    &quot;不支持的算法: &quot; + request.getAlgorithm());</span>
+        }
+
+        // 数据类型
+<span class="fc" id="L100">        DataType dataType = DataType.from(request.getDataType());</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (dataType == null) {</span>
+<span class="fc" id="L102">            throw new ApiException(ErrorCode.INVALID_DATA_TYPE,</span>
+<span class="fc" id="L103">                    &quot;无效的数据类型: &quot; + request.getDataType());</span>
+        }
+
+        // 数据
+<span class="fc" id="L107">        List&lt;Object&gt; data = request.getData();</span>
+<span class="pc bpc" id="L108" title="1 of 4 branches missed.">        if (data == null || data.isEmpty()) {</span>
+<span class="fc" id="L109">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;数据不能为空&quot;);</span>
+        }
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        int maxSize = &quot;TEACHING&quot;.equals(mode) ? maxTeachingSize : maxPerformanceSize;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (data.size() &gt; maxSize) {</span>
+<span class="fc" id="L114">            throw new ApiException(ErrorCode.DATA_TOO_LARGE,</span>
+<span class="fc" id="L115">                    String.format(&quot;数据量超过限制: %d &gt; %d&quot;, data.size(), maxSize));</span>
+        }
+
+        // 数据内容
+<span class="fc" id="L119">        validateDataContent(data, dataType);</span>
+
+        // 步进间隔：仅教学模式需要
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (&quot;TEACHING&quot;.equals(mode)) {</span>
+<span class="fc" id="L123">            Integer interval = request.getInterval();</span>
+<span class="fc bfc" id="L124" title="All 6 branches covered.">            if (interval == null || interval &lt; MIN_INTERVAL || interval &gt; MAX_INTERVAL) {</span>
+<span class="fc" id="L125">                throw new ApiException(ErrorCode.INVALID_INTERVAL,</span>
+<span class="fc" id="L126">                        String.format(&quot;间隔时间必须在 %d-%d 毫秒之间&quot;, MIN_INTERVAL, MAX_INTERVAL));</span>
+            }
+        }
+
+        // 数据分布 / 比较器配置
+<span class="fc" id="L131">        validateDistribution(request.getDistribution());</span>
+<span class="fc" id="L132">        validateComparatorInfo(request.getComparatorInfo(), dataType);</span>
+
+<span class="fc" id="L134">        log.info(&quot;请求验证通过: requestId={}, mode={}, algorithm={}, dataSize={}, dataType={}&quot;,</span>
+<span class="fc" id="L135">                request.getRequestId(), mode, algorithm, data.size(), dataType.code());</span>
+<span class="fc" id="L136">    }</span>
+
+    /**
+     * 验证数据内容。
+     */
+    private void validateDataContent(List&lt;Object&gt; data, DataType dataType) {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        for (int i = 0; i &lt; data.size(); i++) {</span>
+<span class="fc" id="L143">            Object item = data.get(i);</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">            if (item == null) {</span>
+<span class="fc" id="L145">                throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+<span class="fc" id="L146">                        String.format(&quot;第%d个数据不能为空&quot;, i + 1));</span>
+            }
+            try {
+<span class="pc bpc" id="L149" title="1 of 4 branches missed.">                switch (dataType) {</span>
+<span class="fc" id="L150">                    case INTEGER -&gt; validateInteger(item);</span>
+<span class="fc" id="L151">                    case DOUBLE -&gt; validateDouble(item);</span>
+<span class="fc" id="L152">                    case PERSON -&gt; validatePerson(item);</span>
+                }
+<span class="fc" id="L154">            } catch (ApiException e) {</span>
+<span class="fc" id="L155">                throw new ApiException(e.getErrorCode(),</span>
+<span class="fc" id="L156">                        String.format(&quot;第%d个数据验证失败: %s&quot;, i + 1, e.getMessage()), null, e);</span>
+<span class="fc" id="L157">            }</span>
+        }
+<span class="fc" id="L159">    }</span>
+
+    /**
+     * 整数校验：拒绝小数、非有限值、超出 int 范围的值。
+     * 允许 {@code 3.0} 这类&quot;值为整数&quot;的浮点数与数字字符串。
+     */
+    private void validateInteger(Object item) {
+<span class="fc bfc" id="L166" title="All 6 branches covered.">        if (item instanceof Integer || item instanceof Short || item instanceof Byte) {</span>
+<span class="fc" id="L167">            return;</span>
+        }
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (item instanceof Long value) {</span>
+<span class="pc bpc" id="L170" title="3 of 4 branches missed.">            if (value &gt; Integer.MAX_VALUE || value &lt; Integer.MIN_VALUE) {</span>
+<span class="fc" id="L171">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;整数超出范围: &quot; + value);</span>
+            }
+<span class="nc" id="L173">            return;</span>
+        }
+<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (item instanceof Number number) {</span>
+<span class="fc" id="L176">            double value = number.doubleValue();</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">            if (!Double.isFinite(value)) {</span>
+<span class="nc" id="L178">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的整数: &quot; + item);</span>
+            }
+<span class="fc bfc" id="L180" title="All 2 branches covered.">            if (value != Math.rint(value)) {</span>
+<span class="fc" id="L181">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是整数: &quot; + item);</span>
+            }
+<span class="pc bpc" id="L183" title="2 of 4 branches missed.">            if (value &gt; Integer.MAX_VALUE || value &lt; Integer.MIN_VALUE) {</span>
+<span class="nc" id="L184">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;整数超出范围: &quot; + item);</span>
+            }
+<span class="fc" id="L186">            return;</span>
+        }
+<span class="fc bfc" id="L188" title="All 2 branches covered.">        if (item instanceof String text) {</span>
+            try {
+<span class="fc" id="L190">                Integer.parseInt(text.trim());</span>
+<span class="nc" id="L191">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L192">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的整数: &quot; + item);</span>
+<span class="fc" id="L193">            }</span>
+<span class="fc" id="L194">            return;</span>
+        }
+<span class="fc" id="L196">        throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的整数: &quot; + item);</span>
+    }
+
+    /**
+     * 浮点数校验：拒绝 NaN / Infinity。
+     */
+    private void validateDouble(Object item) {
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (item instanceof Number number) {</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">            if (!Double.isFinite(number.doubleValue())) {</span>
+<span class="fc" id="L205">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的浮点数: &quot; + item);</span>
+            }
+<span class="fc" id="L207">            return;</span>
+        }
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        if (item instanceof String text) {</span>
+            double value;
+            try {
+<span class="fc" id="L212">                value = Double.parseDouble(text.trim());</span>
+<span class="fc" id="L213">            } catch (NumberFormatException e) {</span>
+<span class="fc" id="L214">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的浮点数: &quot; + item);</span>
+<span class="fc" id="L215">            }</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">            if (!Double.isFinite(value)) {</span>
+<span class="nc" id="L217">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的浮点数: &quot; + item);</span>
+            }
+<span class="fc" id="L219">            return;</span>
+        }
+<span class="fc" id="L221">        throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;不是有效的浮点数: &quot; + item);</span>
+    }
+
+    /**
+     * Person 结构体校验。
+     */
+    private void validatePerson(Object item) {
+        Person person;
+<span class="fc bfc" id="L229" title="All 2 branches covered.">        if (item instanceof Person p) {</span>
+<span class="fc" id="L230">            person = p;</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">        } else if (item instanceof Map) {</span>
+<span class="fc" id="L232">            person = JsonUtil.convertValue(item, Person.class);</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">            if (person == null) {</span>
+<span class="fc" id="L234">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person 数据格式错误&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L237">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person 数据必须是对象类型&quot;);</span>
+        }
+
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (person.getId() == null) {</span>
+<span class="nc" id="L241">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.id 不能为空&quot;);</span>
+        }
+<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (person.getId() &lt; 0) {</span>
+<span class="fc" id="L244">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.id 不能为负数: &quot; + person.getId());</span>
+        }
+
+<span class="pc bpc" id="L247" title="1 of 4 branches missed.">        if (person.getName() == null || person.getName().isBlank()) {</span>
+<span class="fc" id="L248">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.name 不能为空&quot;);</span>
+        }
+<span class="fc bfc" id="L250" title="All 2 branches covered.">        if (person.getName().trim().length() &gt; MAX_NAME_LENGTH) {</span>
+<span class="fc" id="L251">            throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+                    &quot;Person.name 长度不能超过 &quot; + MAX_NAME_LENGTH + &quot; 个字符&quot;);
+        }
+
+<span class="fc bfc" id="L255" title="All 2 branches covered.">        if (person.getAge() == null) {</span>
+<span class="fc" id="L256">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.age 不能为空&quot;);</span>
+        }
+<span class="pc bpc" id="L258" title="1 of 4 branches missed.">        if (person.getAge() &lt; minAge || person.getAge() &gt; maxAge) {</span>
+<span class="fc" id="L259">            throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+<span class="fc" id="L260">                    String.format(&quot;Person.age 必须在 %d-%d 之间: %d&quot;, minAge, maxAge, person.getAge()));</span>
+        }
+
+<span class="fc bfc" id="L263" title="All 2 branches covered.">        if (person.getScore() == null) {</span>
+<span class="fc" id="L264">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.score 不能为空&quot;);</span>
+        }
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (!Double.isFinite(person.getScore())) {</span>
+<span class="fc" id="L267">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.score 不是有效数字&quot;);</span>
+        }
+<span class="pc bpc" id="L269" title="2 of 4 branches missed.">        if (person.getScore() &lt; minScore || person.getScore() &gt; maxScore) {</span>
+<span class="nc" id="L270">            throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+<span class="nc" id="L271">                    String.format(&quot;Person.score 必须在 %.1f-%.1f 之间: %.1f&quot;,</span>
+<span class="nc" id="L272">                            minScore, maxScore, person.getScore()));</span>
+        }
+
+        // email 允许缺省；一旦提供则必须是合法邮箱（与前端 fileParser 的格式要求对齐）
+<span class="fc bfc" id="L276" title="All 4 branches covered.">        if (person.getEmail() != null &amp;&amp; !person.getEmail().isBlank()) {</span>
+<span class="fc" id="L277">            String email = person.getEmail().trim();</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">            if (email.length() &gt; MAX_EMAIL_LENGTH) {</span>
+<span class="fc" id="L279">                throw new ApiException(ErrorCode.VALIDATION_ERROR,</span>
+                        &quot;Person.email 长度不能超过 &quot; + MAX_EMAIL_LENGTH + &quot; 个字符&quot;);
+            }
+<span class="fc bfc" id="L282" title="All 2 branches covered.">            if (!EMAIL.matcher(email).matches()) {</span>
+<span class="fc" id="L283">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person.email 格式不正确: &quot; + email);</span>
+            }
+        }
+<span class="fc" id="L286">    }</span>
+
+    private void validateDistribution(String distribution) {
+<span class="pc bpc" id="L289" title="1 of 4 branches missed.">        if (distribution == null || distribution.isBlank()) {</span>
+<span class="fc" id="L290">            return;</span>
+        }
+<span class="fc" id="L292">        String normalized = distribution.trim().toUpperCase();</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        if (!SUPPORTED_DISTRIBUTIONS.contains(normalized)) {</span>
+<span class="fc" id="L294">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无效的数据分布: &quot; + distribution);</span>
+        }
+<span class="fc" id="L296">    }</span>
+
+    private void validateComparatorInfo(SortRequest.ComparatorInfo comparatorInfo, DataType dataType) {
+<span class="fc bfc" id="L299" title="All 2 branches covered.">        if (comparatorInfo == null) {</span>
+<span class="fc" id="L300">            return;</span>
+        }
+
+<span class="fc" id="L303">        String direction = comparatorInfo.getDirection();</span>
+<span class="pc bpc" id="L304" title="1 of 4 branches missed.">        if (direction != null &amp;&amp; !direction.isBlank()</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">                &amp;&amp; !SUPPORTED_DIRECTIONS.contains(direction.trim().toUpperCase())) {</span>
+<span class="fc" id="L306">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无效的排序方向: &quot; + direction);</span>
+        }
+
+<span class="fc" id="L309">        String method = comparatorInfo.getMethod();</span>
+<span class="pc bpc" id="L310" title="1 of 4 branches missed.">        if (method != null &amp;&amp; !method.isBlank()</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">                &amp;&amp; !SUPPORTED_METHODS.contains(method.trim().toUpperCase())) {</span>
+<span class="fc" id="L312">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无效的比较方法: &quot; + method);</span>
+        }
+
+<span class="fc" id="L315">        String structField = comparatorInfo.getStructField();</span>
+<span class="fc bfc" id="L316" title="All 4 branches covered.">        if (structField != null &amp;&amp; !structField.isBlank()) {</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">            if (dataType != DataType.PERSON) {</span>
+<span class="fc" id="L318">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;仅 Person 类型支持指定结构体字段&quot;);</span>
+            }
+<span class="fc bfc" id="L320" title="All 2 branches covered.">            if (!SUPPORTED_PERSON_FIELDS.contains(structField.trim().toUpperCase())) {</span>
+<span class="fc" id="L321">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;Person 不支持按该字段排序: &quot; + structField);</span>
+            }
+        }
+<span class="fc" id="L324">    }</span>
+
+    /**
+     * 数据转换：校验通过后才会调用，规则与校验保持一致。
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;T&gt; List&lt;T&gt; convertData(List&lt;Object&gt; rawData, String dataType) {
+<span class="fc" id="L331">        DataType type = DataType.from(dataType);</span>
+<span class="fc bfc" id="L332" title="All 2 branches covered.">        if (type == null) {</span>
+<span class="fc" id="L333">            throw new ApiException(ErrorCode.INVALID_DATA_TYPE, &quot;未知数据类型: &quot; + dataType);</span>
+        }
+<span class="fc bfc" id="L335" title="All 4 branches covered.">        if (rawData == null || rawData.isEmpty()) {</span>
+<span class="fc" id="L336">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;数据不能为空&quot;);</span>
+        }
+
+        try {
+<span class="fc bfc" id="L340" title="All 3 branches covered.">            return switch (type) {</span>
+<span class="fc" id="L341">                case INTEGER -&gt; (List&lt;T&gt;) convertToIntegerList(rawData);</span>
+<span class="fc" id="L342">                case DOUBLE -&gt; (List&lt;T&gt;) convertToDoubleList(rawData);</span>
+<span class="fc" id="L343">                case PERSON -&gt; (List&lt;T&gt;) convertToPersonList(rawData);</span>
+            };
+<span class="fc" id="L345">        } catch (ApiException e) {</span>
+<span class="fc" id="L346">            throw e;</span>
+<span class="fc" id="L347">        } catch (Exception e) {</span>
+<span class="fc" id="L348">            log.warn(&quot;数据转换失败: dataType={}&quot;, dataType, e);</span>
+<span class="fc" id="L349">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;数据转换失败&quot;, null, e);</span>
+        }
+    }
+
+    private List&lt;Integer&gt; convertToIntegerList(List&lt;Object&gt; rawData) {
+<span class="fc" id="L354">        List&lt;Integer&gt; result = new ArrayList&lt;&gt;(rawData.size());</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">        for (Object item : rawData) {</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">            if (item == null) {</span>
+<span class="fc" id="L357">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;数据不能为 null&quot;);</span>
+            }
+<span class="fc bfc" id="L359" title="All 2 branches covered.">            if (item instanceof Integer value) {</span>
+<span class="fc" id="L360">                result.add(value);</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">            } else if (item instanceof Number number) {</span>
+<span class="fc" id="L362">                result.add(number.intValue());</span>
+            } else {
+<span class="fc" id="L364">                result.add(Integer.parseInt(item.toString().trim()));</span>
+            }
+<span class="fc" id="L366">        }</span>
+<span class="fc" id="L367">        return result;</span>
+    }
+
+    private List&lt;Double&gt; convertToDoubleList(List&lt;Object&gt; rawData) {
+<span class="fc" id="L371">        List&lt;Double&gt; result = new ArrayList&lt;&gt;(rawData.size());</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">        for (Object item : rawData) {</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">            if (item == null) {</span>
+<span class="nc" id="L374">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;数据不能为 null&quot;);</span>
+            }
+<span class="fc bfc" id="L376" title="All 2 branches covered.">            if (item instanceof Double value) {</span>
+<span class="fc" id="L377">                result.add(value);</span>
+<span class="fc bfc" id="L378" title="All 2 branches covered.">            } else if (item instanceof Number number) {</span>
+<span class="fc" id="L379">                result.add(number.doubleValue());</span>
+            } else {
+<span class="fc" id="L381">                result.add(Double.parseDouble(item.toString().trim()));</span>
+            }
+<span class="fc" id="L383">        }</span>
+<span class="fc" id="L384">        return result;</span>
+    }
+
+    private List&lt;Person&gt; convertToPersonList(List&lt;Object&gt; rawData) {
+<span class="fc" id="L388">        List&lt;Person&gt; result = new ArrayList&lt;&gt;(rawData.size());</span>
+<span class="fc bfc" id="L389" title="All 2 branches covered.">        for (Object item : rawData) {</span>
+<span class="pc bpc" id="L390" title="1 of 2 branches missed.">            if (item instanceof Person person) {</span>
+<span class="nc" id="L391">                result.add(person);</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">            } else if (item instanceof Map) {</span>
+<span class="fc" id="L393">                Person person = JsonUtil.convertValue(item, Person.class);</span>
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">                if (person == null) {</span>
+<span class="nc" id="L395">                    throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无法转换为 Person: &quot; + item);</span>
+                }
+<span class="fc" id="L397">                result.add(person);</span>
+<span class="fc" id="L398">            } else {</span>
+<span class="fc" id="L399">                throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;无法转换为 Person: &quot; + item);</span>
+            }
+<span class="fc" id="L401">        }</span>
+<span class="fc" id="L402">        return result;</span>
+    }
+
+    private String normalize(String value) {
+<span class="fc bfc" id="L406" title="All 2 branches covered.">        return value == null ? null : value.trim().toUpperCase();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ComparatorFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm</a> &gt; <span class="el_source">ComparatorFactory.java</span></div><h1>ComparatorFactory.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm;
+
+import com.sorting.visualization.model.DataType;
+import com.sorting.visualization.model.Person;
+import com.sorting.visualization.model.request.SortRequest;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Comparator;
+
+<span class="fc" id="L10">@Slf4j</span>
+<span class="nc" id="L11">public class ComparatorFactory {</span>
+
+    /**
+     * 创建比较器。
+     *
+     * &lt;p&gt;参数缺省时使用安全默认值（升序、数值比较、Person 按 score），
+     * 不再因为 {@code method} 为 null 而抛 NPE；空值校验由 W3 的 DataValidator 负责。&lt;/p&gt;
+     *
+     * @param dataType       数据类型
+     * @param comparatorInfo 比较器信息
+     * @return Comparator&lt;Object&gt;
+     */
+    public static Comparator&lt;Object&gt; createComparator(String dataType, SortRequest.ComparatorInfo comparatorInfo) {
+<span class="fc bfc" id="L24" title="All 2 branches covered.">        if (comparatorInfo == null) {</span>
+<span class="fc" id="L25">            comparatorInfo = new SortRequest.ComparatorInfo();</span>
+        }
+
+<span class="fc" id="L28">        String direction = comparatorInfo.getDirection();</span>
+<span class="pc bpc" id="L29" title="1 of 4 branches missed.">        boolean ascending = direction == null || direction.isBlank()</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">                || &quot;ascending&quot;.equalsIgnoreCase(direction.trim());</span>
+
+<span class="fc" id="L32">        String method = comparatorInfo.getMethod();</span>
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        method = (method == null || method.isBlank()) ? &quot;numeric&quot; : method.trim().toLowerCase();</span>
+
+<span class="fc" id="L35">        String structField = comparatorInfo.getStructField();</span>
+<span class="pc bpc" id="L36" title="1 of 4 branches missed.">        structField = (structField == null || structField.isBlank()) ? &quot;score&quot; : structField.trim().toLowerCase();</span>
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (DataType.from(dataType) == DataType.PERSON) {</span>
+<span class="fc" id="L39">            return createPersonComparator(ascending, method, structField);</span>
+        }
+
+        // 数值类型比较器（Integer, Double）
+<span class="fc" id="L43">        return createNumericComparator(ascending, method);</span>
+    }
+
+    /**
+     * 创建Person比较器
+     */
+    private static Comparator&lt;Object&gt; createPersonComparator(boolean ascending, String method, String structField) {
+<span class="fc bfc" id="L50" title="All 4 branches covered.">        return switch (structField) {</span>
+<span class="fc" id="L51">            case &quot;age&quot; -&gt; (a, b) -&gt; {</span>
+<span class="fc" id="L52">                Person p1 = (Person) a;</span>
+<span class="fc" id="L53">                Person p2 = (Person) b;</span>
+
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                double value1 = p1.getAge() != null ? p1.getAge() : 0;</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">                double value2 = p2.getAge() != null ? p2.getAge() : 0;</span>
+
+<span class="fc" id="L58">                return compareValues(value1, value2, ascending, method);</span>
+            };
+<span class="fc" id="L60">            case &quot;id&quot; -&gt; (a, b) -&gt; {</span>
+<span class="fc" id="L61">                Person p1 = (Person) a;</span>
+<span class="fc" id="L62">                Person p2 = (Person) b;</span>
+<span class="fc" id="L63">                double value1 = p1.getId();</span>
+<span class="fc" id="L64">                double value2 = p2.getId();</span>
+<span class="fc" id="L65">                return compareValues(value1, value2, ascending, method);</span>
+            };
+<span class="fc" id="L67">            case &quot;name&quot; -&gt; (a, b) -&gt; {</span>
+<span class="fc" id="L68">                Person p1 = (Person) a;</span>
+<span class="fc" id="L69">                Person p2 = (Person) b;</span>
+<span class="fc" id="L70">                String name1 = p1.getName();</span>
+<span class="fc" id="L71">                String name2 = p2.getName();</span>
+<span class="fc" id="L72">                return compareValues(name1, name2, ascending, method);</span>
+            };
+<span class="fc" id="L74">            default -&gt; (a, b) -&gt; {</span>
+<span class="fc" id="L75">                Person p1 = (Person) a;</span>
+<span class="fc" id="L76">                Person p2 = (Person) b;</span>
+
+                // 根据 comparatorInfo.structField 动态选择排序字段，默认 score
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                String field = (structField != null) ? structField : &quot;score&quot;;</span>
+<span class="fc" id="L80">                double value1 = getPersonFieldValue(p1, field);</span>
+<span class="fc" id="L81">                double value2 = getPersonFieldValue(p2, field);</span>
+
+<span class="fc" id="L83">                return compareValues(value1, value2, ascending, method);</span>
+            };
+        };
+    }
+
+    /**
+     * 创建数值比较器
+     */
+    private static Comparator&lt;Object&gt; createNumericComparator(boolean ascending, String method) {
+<span class="fc" id="L92">        return (a, b) -&gt; {</span>
+<span class="fc" id="L93">            double value1 = convertToDouble(a);</span>
+<span class="fc" id="L94">            double value2 = convertToDouble(b);</span>
+
+<span class="fc" id="L96">            return compareValues(value1, value2, ascending, method);</span>
+        };
+    }
+
+    /**
+     * 比较两个值
+     */
+    private static int compareValues(double value1, double value2, boolean ascending, String method) {
+<span class="fc" id="L104">        double v1 = value1;</span>
+<span class="fc" id="L105">        double v2 = value2;</span>
+
+        // 根据比较方法处理值
+<span class="fc bfc" id="L108" title="All 3 branches covered.">        switch (method.toLowerCase()) {</span>
+            case &quot;absolute&quot;:
+<span class="fc" id="L110">                v1 = Math.abs(value1);</span>
+<span class="fc" id="L111">                v2 = Math.abs(value2);</span>
+<span class="fc" id="L112">                break;</span>
+            case &quot;reverse&quot;:
+                // 反向比较：交换比较逻辑
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">                if (ascending) {</span>
+<span class="fc" id="L116">                    return Double.compare(value2, value1);</span>
+                } else {
+<span class="nc" id="L118">                    return Double.compare(value1, value2);</span>
+                }
+        }
+
+        // 正常比较
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        if (ascending) {</span>
+<span class="fc" id="L124">            return Double.compare(v1, v2);</span>
+        } else {
+<span class="fc" id="L126">            return Double.compare(v2, v1);</span>
+        }
+    }
+
+    //对字符串比较进行处理（Person：name）
+    private static int compareValues(String value1, String value2, boolean ascending, String method) {
+        // 根据比较方法处理值
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        switch (method.toLowerCase()) {</span>
+            case &quot;absolute&quot;:
+            case &quot;reverse&quot;:
+                // 反向比较：交换比较逻辑
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                if (ascending) {</span>
+<span class="fc" id="L138">                    return CharSequence.compare(value2, value1);</span>
+                } else {
+<span class="nc" id="L140">                    return CharSequence.compare(value1, value2);</span>
+                }
+        }
+
+        // 正常比较
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (ascending) {</span>
+<span class="fc" id="L146">            return CharSequence.compare(value1, value2);</span>
+        } else {
+<span class="nc" id="L148">            return CharSequence.compare(value2, value1);</span>
+        }
+    }
+
+    /**
+     * 将对象转换为double
+     */
+    private static double convertToDouble(Object obj) {
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (obj instanceof Integer) {</span>
+<span class="fc" id="L157">            return ((Integer) obj).doubleValue();</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        } else if (obj instanceof Double) {</span>
+<span class="fc" id="L159">            return (Double) obj;</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        } else if (obj instanceof Float) {</span>
+<span class="fc" id="L161">            return ((Float) obj).doubleValue();</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        } else if (obj instanceof Long) {</span>
+<span class="fc" id="L163">            return ((Long) obj).doubleValue();</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        } else if (obj instanceof String) {</span>
+            try {
+<span class="fc" id="L166">                return Double.parseDouble((String) obj);</span>
+<span class="fc" id="L167">            } catch (NumberFormatException e) {</span>
+<span class="fc" id="L168">                return 0;</span>
+            }
+        } else {
+<span class="nc" id="L171">            return 0;</span>
+        }
+    }
+
+    /**
+     * 从 Person 对象中获取指定字段的数值（用于排序比较）
+     */
+    private static double getPersonFieldValue(Person person, String field) {
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (field == null) return 0;</span>
+<span class="pc bpc" id="L180" title="3 of 6 branches missed.">        return switch (field.toLowerCase()) {</span>
+<span class="nc" id="L181">            case &quot;id&quot; -&gt; (double) person.getId();</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">            case &quot;age&quot; -&gt; person.getAge() != null ? (double) person.getAge() : 0;</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">            case &quot;score&quot; -&gt; person.getScore() != null ? person.getScore() : 0;</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">            case &quot;email&quot; -&gt; person.getEmail() != null ? person.getEmail().hashCode() : 0;</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            case &quot;name&quot; -&gt; person.getName() != null ? person.getName().hashCode() : 0;</span>
+<span class="fc" id="L186">            default -&gt; 0;</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

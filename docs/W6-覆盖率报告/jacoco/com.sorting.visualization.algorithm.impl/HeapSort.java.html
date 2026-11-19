@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HeapSort.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm.impl</a> &gt; <span class="el_source">HeapSort.java</span></div><h1>HeapSort.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm.impl;
+
+import com.sorting.visualization.algorithm.AbstractSortingAlgorithm;
+import com.sorting.visualization.model.Highlight;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+<span class="fc" id="L11">@Slf4j</span>
+<span class="fc" id="L12">public class HeapSort&lt;T&gt; extends AbstractSortingAlgorithm&lt;T&gt; {</span>
+
+    @Override
+    public TeachingResult&lt;T&gt; teach(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L16">        initTeaching(data);</span>
+
+<span class="fc" id="L18">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+<span class="fc" id="L19">        int n = workingData.size();</span>
+
+<span class="fc" id="L21">        Highlight highlight = new Highlight();</span>
+
+<span class="fc" id="L23">        addStep(workingData, highlight, &quot;开始构建最大堆&quot;);</span>
+
+        // 构建最大堆
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        for (int i = n / 2 - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L27">            heapifyTeach(workingData, n, i, comparator, &quot;build&quot;);</span>
+        }
+
+<span class="fc" id="L30">        highlight = new Highlight();</span>
+<span class="fc" id="L31">        List&lt;Integer&gt; heapIndices = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (int i = 0; i &lt; n; i++) heapIndices.add(i);</span>
+<span class="fc" id="L33">        highlight.setHeap(heapIndices);</span>
+
+<span class="fc" id="L35">        addStep(workingData, highlight, &quot;最大堆构建完成&quot;);</span>
+
+        // 一个一个从堆中取出元素
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        for (int i = n - 1; i &gt; 0; i--) {</span>
+<span class="fc" id="L39">            highlight = new Highlight();</span>
+<span class="fc" id="L40">            highlight.setSwap(List.of(0, i));</span>
+
+<span class="fc" id="L42">            addStep(workingData, highlight,</span>
+<span class="fc" id="L43">                    String.format(&quot;将堆顶元素(最大值)交换到末尾第%d位&quot;, i + 1));</span>
+
+            // 将当前根节点移动到末尾
+<span class="fc" id="L46">            swap(workingData, 0, i);</span>
+
+<span class="fc" id="L48">            highlight = new Highlight();</span>
+<span class="fc" id="L49">            List&lt;Integer&gt; sorted = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            for (int k = i; k &lt; n; k++) sorted.add(k);</span>
+<span class="fc" id="L51">            highlight.setSorted(sorted);</span>
+
+<span class="fc" id="L53">            addStep(workingData, highlight,</span>
+<span class="fc" id="L54">                    String.format(&quot;重新调整堆，堆大小: %d&quot;, i));</span>
+
+            // 调整剩余元素的堆
+<span class="fc" id="L57">            heapifyTeach(workingData, i, 0, comparator, &quot;extract&quot;);</span>
+        }
+
+<span class="fc" id="L60">        return completeTeaching(workingData, steps.size() + 1);</span>
+    }
+
+    private void heapifyTeach(List&lt;T&gt; data, int heapSize, int i, Comparator&lt;T&gt; comparator, String mode) {
+<span class="fc" id="L64">        int largest = i;</span>
+<span class="fc" id="L65">        int left = 2 * i + 1;</span>
+<span class="fc" id="L66">        int right = 2 * i + 2;</span>
+
+<span class="fc" id="L68">        Highlight highlight = new Highlight();</span>
+<span class="fc" id="L69">        List&lt;Integer&gt; nodes = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L70">        nodes.add(i);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (left &lt; heapSize) nodes.add(left);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (right &lt; heapSize) nodes.add(right);</span>
+<span class="fc" id="L73">        highlight.setHeap(nodes);</span>
+
+<span class="fc" id="L75">        addStep(data, highlight,</span>
+<span class="fc" id="L76">                String.format(&quot;调整以节点%d为根的堆&quot;, i + 1));</span>
+
+        // 如果左子节点更大
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (left &lt; heapSize) {</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">            if (compare(comparator, data.get(left), data.get(largest)) &gt; 0) {</span>
+<span class="fc" id="L81">                largest = left;</span>
+            }
+        }
+
+        // 如果右子节点更大
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (right &lt; heapSize) {</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">            if (compare(comparator, data.get(right), data.get(largest)) &gt; 0) {</span>
+<span class="fc" id="L88">                largest = right;</span>
+            }
+        }
+
+        // 如果最大节点不是根节点
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (largest != i) {</span>
+<span class="fc" id="L94">            swap(data, i, largest);</span>
+
+<span class="fc" id="L96">            highlight = new Highlight();</span>
+<span class="fc" id="L97">            highlight.setSwap(List.of(i, largest));</span>
+
+<span class="fc" id="L99">            addStep(data, highlight,</span>
+<span class="fc" id="L100">                    String.format(&quot;交换节点%d和节点%d&quot;, i + 1, largest + 1));</span>
+
+            // 递归调整受影响的子树
+<span class="fc" id="L103">            heapifyTeach(data, heapSize, largest, comparator, mode);</span>
+        } else {
+<span class="fc" id="L105">            highlight = new Highlight();</span>
+<span class="fc" id="L106">            highlight.setHeap(List.of(i));</span>
+
+<span class="fc" id="L108">            addStep(data, highlight,</span>
+<span class="fc" id="L109">                    String.format(&quot;节点%d已在正确位置&quot;, i + 1));</span>
+        }
+<span class="fc" id="L111">    }</span>
+
+    @Override
+    public PerformanceResult&lt;T&gt; perform(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L115">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+<span class="fc" id="L116">        int n = workingData.size();</span>
+<span class="fc" id="L117">        comparisons = 0;</span>
+<span class="fc" id="L118">        swaps = 0;</span>
+<span class="fc" id="L119">        startTime = System.nanoTime();</span>
+
+        // 构建最大堆
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        for (int i = n / 2 - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L123">            heapify(workingData, n, i, comparator);</span>
+        }
+
+        // 一个一个从堆中取出元素
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        for (int i = n - 1; i &gt; 0; i--) {</span>
+            // 将当前根节点移动到末尾
+<span class="fc" id="L129">            swap(workingData, 0, i);</span>
+
+            // 调整剩余元素的堆
+<span class="fc" id="L132">            heapify(workingData, i, 0, comparator);</span>
+        }
+
+<span class="fc" id="L135">        long time = (System.nanoTime() - startTime)/1000;</span>
+
+<span class="fc" id="L137">        PerformanceResult&lt;T&gt; result = new PerformanceResult&lt;&gt;();</span>
+<span class="fc" id="L138">        result.setSortedData(workingData);</span>
+<span class="fc" id="L139">        result.setComparisons(comparisons);</span>
+<span class="fc" id="L140">        result.setSwaps(swaps);</span>
+<span class="fc" id="L141">        result.setTime(time);</span>
+
+<span class="fc" id="L143">        return result;</span>
+    }
+
+    private void heapify(List&lt;T&gt; data, int heapSize, int i, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L147">        int largest = i;</span>
+<span class="fc" id="L148">        int left = 2 * i + 1;</span>
+<span class="fc" id="L149">        int right = 2 * i + 2;</span>
+
+        // 如果左子节点更大
+<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (left &lt; heapSize) {</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">            if (compare(comparator, data.get(left), data.get(largest)) &gt; 0) {</span>
+<span class="fc" id="L154">                largest = left;</span>
+            }
+        }
+
+        // 如果右子节点更大
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (right &lt; heapSize) {</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            if (compare(comparator, data.get(right), data.get(largest)) &gt; 0) {</span>
+<span class="fc" id="L161">                largest = right;</span>
+            }
+        }
+
+        // 如果最大节点不是根节点
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        if (largest != i) {</span>
+<span class="fc" id="L167">            swap(data, i, largest);</span>
+            // 递归调整受影响的子树
+<span class="fc" id="L169">            heapify(data, heapSize, largest, comparator);</span>
+        }
+<span class="fc" id="L171">    }</span>
+
+    @Override
+    public String getAlgorithmName() {
+<span class="fc" id="L175">        return &quot;堆排序&quot;;</span>
+    }
+
+    @Override
+    public String getTimeComplexity() {
+<span class="fc" id="L180">        return &quot;O(n log n)&quot;;</span>
+    }
+
+    @Override
+    public String getSpaceComplexity() {
+<span class="fc" id="L185">        return &quot;O(1)&quot;;</span>
+    }
+
+    @Override
+    public boolean isStable() {
+<span class="fc" id="L190">        return false;</span>
+    }
+
+    @Override
+    public boolean supportsDataType(Class&lt;?&gt; dataType) {
+<span class="fc" id="L195">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

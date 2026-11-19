@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuickSort.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm.impl</a> &gt; <span class="el_source">QuickSort.java</span></div><h1>QuickSort.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm.impl;
+
+import com.sorting.visualization.algorithm.AbstractSortingAlgorithm;
+import com.sorting.visualization.model.Highlight;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Stack;
+
+<span class="fc" id="L12">@Slf4j</span>
+<span class="fc" id="L13">public class QuickSort&lt;T&gt; extends AbstractSortingAlgorithm&lt;T&gt; {</span>
+
+    @Override
+    public TeachingResult&lt;T&gt; teach(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L17">        initTeaching(data);</span>
+
+<span class="fc" id="L19">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+
+        // 使用栈代替递归以避免栈溢出
+<span class="fc" id="L22">        Stack&lt;QuickSortRange&gt; stack = new Stack&lt;&gt;();</span>
+<span class="fc" id="L23">        stack.push(new QuickSortRange(0, workingData.size() - 1));</span>
+
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        while (!stack.isEmpty()) {</span>
+<span class="fc" id="L26">            QuickSortRange range = stack.pop();</span>
+<span class="fc" id="L27">            int low = range.low;</span>
+<span class="fc" id="L28">            int high = range.high;</span>
+
+<span class="fc bfc" id="L30" title="All 2 branches covered.">            if (low &lt; high) {</span>
+<span class="fc" id="L31">                Highlight highlight = new Highlight();</span>
+<span class="fc" id="L32">                List&lt;Integer&gt; currentRange = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">                for (int i = low; i &lt;= high; i++) {</span>
+<span class="fc" id="L34">                    currentRange.add(i);</span>
+                }
+<span class="fc" id="L36">                highlight.setCompare(currentRange);</span>
+
+<span class="fc" id="L38">                addStep(workingData, highlight,</span>
+<span class="fc" id="L39">                        String.format(&quot;快速排序子数组 [%d, %d]&quot;, low + 1, high + 1));</span>
+
+                // 分区操作
+<span class="fc" id="L42">                int pivotIndex = partition(workingData, low, high, comparator);</span>
+
+                // 将左右子数组入栈
+<span class="fc" id="L45">                stack.push(new QuickSortRange(low, pivotIndex - 1));</span>
+<span class="fc" id="L46">                stack.push(new QuickSortRange(pivotIndex + 1, high));</span>
+            }
+<span class="fc" id="L48">        }</span>
+
+<span class="fc" id="L50">        return completeTeaching(workingData, steps.size() + 1);</span>
+    }
+
+    private int partition(List&lt;T&gt; data, int low, int high, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L54">        T pivot = data.get(high);</span>
+
+<span class="fc" id="L56">        Highlight highlight = new Highlight();</span>
+<span class="fc" id="L57">        highlight.setPivot(List.of(high));</span>
+
+<span class="fc" id="L59">        addStep(data, highlight,</span>
+<span class="fc" id="L60">                String.format(&quot;选择基准元素: 第%d个元素[%s]&quot;, high + 1, pivot));</span>
+
+<span class="fc" id="L62">        int i = low - 1;</span>
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        for (int j = low; j &lt; high; j++) {</span>
+<span class="fc" id="L65">            highlight = new Highlight();</span>
+<span class="fc" id="L66">            highlight.setCompare(List.of(j, high));</span>
+<span class="fc" id="L67">            highlight.setPivot(List.of(high));</span>
+
+<span class="fc" id="L69">            addStep(data, highlight,</span>
+<span class="fc" id="L70">                    String.format(&quot;比较第%d个元素[%s]和基准元素[%s]&quot;,</span>
+<span class="fc" id="L71">                            j + 1, data.get(j), pivot));</span>
+
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            if (compare(comparator, data.get(j), pivot) &lt;= 0) {</span>
+<span class="fc" id="L74">                i++;</span>
+
+<span class="fc bfc" id="L76" title="All 2 branches covered.">                if (i != j) {</span>
+<span class="fc" id="L77">                    swap(data, i, j);</span>
+
+<span class="fc" id="L79">                    highlight = new Highlight();</span>
+<span class="fc" id="L80">                    highlight.setSwap(List.of(i, j));</span>
+<span class="fc" id="L81">                    highlight.setPivot(List.of(high));</span>
+
+<span class="fc" id="L83">                    addStep(data, highlight,</span>
+<span class="fc" id="L84">                            String.format(&quot;交换第%d个和第%d个元素&quot;, i + 1, j + 1));</span>
+                }
+            }
+        }
+
+<span class="fc" id="L89">        swap(data, i + 1, high);</span>
+
+<span class="fc" id="L91">        highlight = new Highlight();</span>
+<span class="fc" id="L92">        highlight.setSwap(List.of(i + 1, high));</span>
+
+<span class="fc" id="L94">        addStep(data, highlight,</span>
+<span class="fc" id="L95">                String.format(&quot;将基准元素交换到正确位置: 第%d位&quot;, i + 2));</span>
+
+<span class="fc" id="L97">        return i + 1;</span>
+    }
+
+    @Override
+    public PerformanceResult&lt;T&gt; perform(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L102">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+<span class="fc" id="L103">        comparisons = 0;</span>
+<span class="fc" id="L104">        swaps = 0;</span>
+<span class="fc" id="L105">        startTime = System.nanoTime();</span>
+
+<span class="fc" id="L107">        quickSort(workingData, 0, workingData.size() - 1, comparator);</span>
+
+<span class="fc" id="L109">        long time = (System.nanoTime() - startTime)/1000;</span>
+
+<span class="fc" id="L111">        PerformanceResult&lt;T&gt; result = new PerformanceResult&lt;&gt;();</span>
+<span class="fc" id="L112">        result.setSortedData(workingData);</span>
+<span class="fc" id="L113">        result.setComparisons(comparisons);</span>
+<span class="fc" id="L114">        result.setSwaps(swaps);</span>
+<span class="fc" id="L115">        result.setTime(time);</span>
+
+<span class="fc" id="L117">        return result;</span>
+    }
+
+    private void quickSort(List&lt;T&gt; data, int low, int high, Comparator&lt;T&gt; comparator) {
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (low &lt; high) {</span>
+<span class="fc" id="L122">            int pi = partitionFast(data, low, high, comparator);</span>
+<span class="fc" id="L123">            quickSort(data, low, pi - 1, comparator);</span>
+<span class="fc" id="L124">            quickSort(data, pi + 1, high, comparator);</span>
+        }
+<span class="fc" id="L126">    }</span>
+
+    private int partitionFast(List&lt;T&gt; data, int low, int high, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L129">        T pivot = data.get(high);</span>
+<span class="fc" id="L130">        int i = low - 1;</span>
+
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        for (int j = low; j &lt; high; j++) {</span>
+<span class="fc" id="L133">            comparisons++;</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">            if (comparator.compare(data.get(j), pivot) &lt;= 0) {</span>
+<span class="fc" id="L135">                i++;</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">                if (i != j) {</span>
+<span class="fc" id="L137">                    swap(data, i, j);</span>
+                }
+            }
+        }
+
+<span class="fc" id="L142">        swap(data, i + 1, high);</span>
+<span class="fc" id="L143">        return i + 1;</span>
+    }
+
+    @Override
+    public String getAlgorithmName() {
+<span class="fc" id="L148">        return &quot;快速排序&quot;;</span>
+    }
+
+    @Override
+    public String getTimeComplexity() {
+<span class="fc" id="L153">        return &quot;O(n log n) - O(n²)&quot;;</span>
+    }
+
+    @Override
+    public String getSpaceComplexity() {
+<span class="fc" id="L158">        return &quot;O(log n)&quot;;</span>
+    }
+
+    @Override
+    public boolean isStable() {
+<span class="fc" id="L163">        return false;</span>
+    }
+
+    @Override
+    public boolean supportsDataType(Class&lt;?&gt; dataType) {
+<span class="fc" id="L168">        return true;</span>
+    }
+
+    private class QuickSortRange {
+        int low;
+        int high;
+
+<span class="fc" id="L175">        QuickSortRange(int low, int high) {</span>
+<span class="fc" id="L176">            this.low = low;</span>
+<span class="fc" id="L177">            this.high = high;</span>
+<span class="fc" id="L178">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JsonUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.util</a> &gt; <span class="el_source">JsonUtil.java</span></div><h1>JsonUtil.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.util;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
+
+<span class="fc" id="L10">@Slf4j</span>
+public class JsonUtil {
+
+<span class="fc" id="L13">    private static final ObjectMapper objectMapper = new ObjectMapper();</span>
+
+    static {
+<span class="fc" id="L16">        objectMapper.registerModule(new JavaTimeModule());</span>
+<span class="fc" id="L17">        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);</span>
+<span class="fc" id="L18">        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);</span>
+<span class="fc" id="L19">    }</span>
+
+    private JsonUtil() {
+        // 工具类，防止实例化
+    }
+
+    /**
+     * 对象转JSON字符串
+     */
+    public static String toJson(Object obj) {
+        try {
+<span class="fc" id="L30">            return objectMapper.writeValueAsString(obj);</span>
+<span class="nc" id="L31">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L32">            log.error(&quot;对象转JSON失败&quot;, e);</span>
+<span class="nc" id="L33">            return &quot;{}&quot;;</span>
+        }
+    }
+
+    /**
+     * JSON字符串转对象
+     */
+    public static &lt;T&gt; T fromJson(String json, Class&lt;T&gt; clazz) {
+        try {
+<span class="fc" id="L42">            return objectMapper.readValue(json, clazz);</span>
+<span class="fc" id="L43">        } catch (JsonProcessingException e) {</span>
+<span class="fc" id="L44">            log.error(&quot;JSON转对象失败: {}, class: {}&quot;, json, clazz.getName(), e);</span>
+<span class="fc" id="L45">            return null;</span>
+        }
+    }
+
+    /**
+     * JSON字符串转对象（抛出异常版本，推荐使用）
+     */
+    public static &lt;T&gt; T fromJsonOrThrow(String json, Class&lt;T&gt; clazz) throws JsonProcessingException {
+<span class="fc" id="L53">        return objectMapper.readValue(json, clazz);</span>
+    }
+
+    /**
+     * JSON字符串转泛型对象
+     */
+    public static &lt;T&gt; T fromJson(String json, TypeReference&lt;T&gt; typeReference) {
+        try {
+<span class="fc" id="L61">            return objectMapper.readValue(json, typeReference);</span>
+<span class="fc" id="L62">        } catch (JsonProcessingException e) {</span>
+<span class="fc" id="L63">            log.error(&quot;JSON转泛型对象失败: {}, type: {}&quot;, json, typeReference.getType(), e);</span>
+<span class="fc" id="L64">            return null;</span>
+        }
+    }
+
+    /**
+     * JSON字符串转泛型对象（抛出异常版本，推荐使用）
+     */
+    public static &lt;T&gt; T fromJsonOrThrow(String json, TypeReference&lt;T&gt; typeReference) throws JsonProcessingException {
+<span class="fc" id="L72">        return objectMapper.readValue(json, typeReference);</span>
+    }
+
+    /**
+     * 美化JSON输出
+     */
+    public static String prettyPrint(Object obj) {
+        try {
+<span class="fc" id="L80">            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);</span>
+<span class="nc" id="L81">        } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L82">            log.error(&quot;美化JSON输出失败&quot;, e);</span>
+<span class="nc" id="L83">            return toJson(obj);</span>
+        }
+    }
+
+    /**
+     * 安全转换对象
+     */
+    public static &lt;T&gt; T convertValue(Object fromValue, Class&lt;T&gt; toValueType) {
+        try {
+<span class="fc" id="L92">            return objectMapper.convertValue(fromValue, toValueType);</span>
+<span class="fc" id="L93">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L94">            log.error(&quot;对象转换失败: {} -&gt; {}&quot;, fromValue.getClass().getName(), toValueType.getName(), e);</span>
+<span class="fc" id="L95">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

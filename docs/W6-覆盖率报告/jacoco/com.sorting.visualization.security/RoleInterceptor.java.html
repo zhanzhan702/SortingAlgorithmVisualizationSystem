@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.security</a> &gt; <span class="el_source">RoleInterceptor.java</span></div><h1>RoleInterceptor.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.security;
+
+import com.sorting.visualization.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.Set;
+
+/**
+ * 角色校验拦截器：只挂在 {@code /api/admin/**} 上，必须排在 {@link AuthInterceptor} 之后。
+ *
+ * &lt;p&gt;规则分两级：&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;写操作（清空数据、触发备份）只有 {@code admin} 可以执行&lt;/li&gt;
+ *   &lt;li&gt;其余管理端查询，{@code admin} 与 {@code teacher} 都可以查看&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@Component
+<span class="fc" id="L22">public class RoleInterceptor implements HandlerInterceptor {</span>
+
+    public static final String ROLE_ADMIN = &quot;admin&quot;;
+    public static final String ROLE_TEACHER = &quot;teacher&quot;;
+
+    /** 仅管理员可执行的写接口 */
+<span class="fc" id="L28">    static final Set&lt;String&gt; ADMIN_ONLY_PATHS = Set.of(</span>
+            &quot;/api/admin/cleanup&quot;,
+            &quot;/api/admin/backup&quot;);
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (HttpMethod.OPTIONS.matches(request.getMethod())) {</span>
+<span class="fc" id="L36">            return true;</span>
+        }
+
+<span class="fc" id="L39">        Object roleAttr = request.getAttribute(AuthInterceptor.ATTR_ROLE);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        String role = roleAttr == null ? null : roleAttr.toString();</span>
+<span class="fc" id="L41">        String path = normalize(request.getRequestURI(), request.getContextPath());</span>
+
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (ADMIN_ONLY_PATHS.contains(path)) {</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">            if (!ROLE_ADMIN.equals(role)) {</span>
+<span class="fc" id="L45">                AuthErrors.write(request, response, ErrorCode.FORBIDDEN, &quot;该操作仅管理员可执行&quot;);</span>
+<span class="fc" id="L46">                return false;</span>
+            }
+<span class="fc" id="L48">            return true;</span>
+        }
+
+<span class="fc bfc" id="L51" title="All 4 branches covered.">        if (!ROLE_ADMIN.equals(role) &amp;&amp; !ROLE_TEACHER.equals(role)) {</span>
+<span class="fc" id="L52">            AuthErrors.write(request, response, ErrorCode.FORBIDDEN, &quot;需要教师或管理员权限&quot;);</span>
+<span class="fc" id="L53">            return false;</span>
+        }
+<span class="fc" id="L55">        return true;</span>
+    }
+
+    /** 去掉 contextPath 与结尾斜杠，避免 {@code /api/admin/cleanup/} 绕过白名单 */
+    static String normalize(String requestUri, String contextPath) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        String path = requestUri == null ? &quot;&quot; : requestUri;</span>
+<span class="pc bpc" id="L61" title="1 of 6 branches missed.">        boolean hasContextPath = contextPath != null &amp;&amp; !contextPath.isEmpty() &amp;&amp; !&quot;/&quot;.equals(contextPath);</span>
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        if (hasContextPath &amp;&amp; path.startsWith(contextPath)) {</span>
+<span class="fc" id="L63">            path = path.substring(contextPath.length());</span>
+        }
+<span class="pc bpc" id="L65" title="1 of 4 branches missed.">        while (path.length() &gt; 1 &amp;&amp; path.endsWith(&quot;/&quot;)) {</span>
+<span class="fc" id="L66">            path = path.substring(0, path.length() - 1);</span>
+        }
+<span class="fc" id="L68">        return path;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

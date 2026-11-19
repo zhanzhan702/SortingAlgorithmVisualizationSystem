@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.security</a> &gt; <span class="el_source">JwtUtil.java</span></div><h1>JwtUtil.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+/**
+ * JWT 签发与校验（HS256）。
+ *
+ * &lt;p&gt;密钥与有效期来自 {@code application.properties} 的 {@code jwt.secret} / {@code jwt.expiration}，
+ * 这两项配置在 2026-05-24 的「数据库集成」提交里就已经写好，但一直没有签发与校验的代码，
+ * 本次收尾补齐（见 WBS 的 W1「补完未竟设计」）。&lt;/p&gt;
+ */
+public class JwtUtil {
+
+    /** 载荷：用户名 */
+    public static final String CLAIM_USERNAME = &quot;username&quot;;
+    /** 载荷：角色（student / teacher / admin） */
+    public static final String CLAIM_ROLE = &quot;role&quot;;
+
+    /** HS256 要求密钥不短于 256 bit，即 32 字节 */
+    static final int MIN_SECRET_BYTES = 32;
+
+    private final SecretKey key;
+    private final long expirationMillis;
+
+    /** 由 {@code JwtConfig} 用配置项构造；单元测试也可直接 new */
+<span class="fc" id="L33">    public JwtUtil(String secret, long expirationMillis) {</span>
+<span class="pc bpc" id="L34" title="1 of 4 branches missed.">        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length &lt; MIN_SECRET_BYTES) {</span>
+<span class="fc" id="L35">            throw new IllegalStateException(&quot;jwt.secret 至少需要 &quot; + MIN_SECRET_BYTES + &quot; 字节&quot;);</span>
+        }
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (expirationMillis &lt;= 0) {</span>
+<span class="fc" id="L38">            throw new IllegalStateException(&quot;jwt.expiration 必须大于 0&quot;);</span>
+        }
+<span class="fc" id="L40">        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L41">        this.expirationMillis = expirationMillis;</span>
+<span class="fc" id="L42">    }</span>
+
+    /** 签发令牌：subject 为用户主键，附带用户名与角色 */
+    public String generateToken(String userId, String username, String role) {
+<span class="fc" id="L46">        Date now = new Date();</span>
+<span class="fc" id="L47">        return Jwts.builder()</span>
+<span class="fc" id="L48">                .subject(userId)</span>
+<span class="fc" id="L49">                .claim(CLAIM_USERNAME, username)</span>
+<span class="fc" id="L50">                .claim(CLAIM_ROLE, role)</span>
+<span class="fc" id="L51">                .issuedAt(now)</span>
+<span class="fc" id="L52">                .expiration(new Date(now.getTime() + expirationMillis))</span>
+<span class="fc" id="L53">                .signWith(key, Jwts.SIG.HS256)</span>
+<span class="fc" id="L54">                .compact();</span>
+    }
+
+    /**
+     * 校验并解析令牌。
+     *
+     * @throws JwtException 签名不符、格式错误或已过期
+     */
+    public Claims parse(String token) throws JwtException {
+<span class="fc" id="L63">        return Jwts.parser()</span>
+<span class="fc" id="L64">                .verifyWith(key)</span>
+<span class="fc" id="L65">                .build()</span>
+<span class="fc" id="L66">                .parseSignedClaims(token)</span>
+<span class="fc" id="L67">                .getPayload();</span>
+    }
+
+    public long getExpirationMillis() {
+<span class="fc" id="L71">        return expirationMillis;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

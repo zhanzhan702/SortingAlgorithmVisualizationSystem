@@ -55,3 +55,13 @@
 mvn test
 # 报告：target/site/jacoco/index.html
 ```
+
+本目录同时归档了 2026-11-19 的原始产物，不装 Maven 也能直接看：
+
+| 文件 / 目录 | 内容 |
+| --- | --- |
+| `jacoco/index.html` | JaCoCo 逐行报告（绿色已覆盖、红色未覆盖），可逐类点开 |
+| `jacoco/jacoco.csv` | 覆盖率原始数据，便于二次统计 |
+| `覆盖率汇总.html` | 一页纸汇总，可直接截图进《测试报告》 |
+| `surefire-reports/` | 15 个测试类的执行结果与耗时 |
+| `测试结果汇总.txt` | 278 例明细与四项覆盖率指标 |

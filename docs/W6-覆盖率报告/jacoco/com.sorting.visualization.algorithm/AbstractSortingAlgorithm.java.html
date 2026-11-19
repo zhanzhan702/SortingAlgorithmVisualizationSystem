@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractSortingAlgorithm.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm</a> &gt; <span class="el_source">AbstractSortingAlgorithm.java</span></div><h1>AbstractSortingAlgorithm.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm;
+
+import com.sorting.visualization.model.Highlight;
+import com.sorting.visualization.model.response.StepUpdate;
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * 排序算法基类
+ *
+ * @param &lt;T&gt; 数据类型
+ */
+<span class="fc" id="L16">public abstract class AbstractSortingAlgorithm&lt;T&gt; implements SortingAlgorithm&lt;T&gt; {</span>
+
+<span class="fc" id="L18">    protected int comparisons = 0;</span>
+<span class="fc" id="L19">    protected int swaps = 0;</span>
+<span class="fc" id="L20">    protected long startTime = 0;</span>
+
+<span class="fc" id="L22">    @Getter</span>
+    protected List&lt;StepUpdate&gt; steps = new ArrayList&lt;&gt;();
+<span class="fc" id="L24">    @Getter</span>
+    protected StepUpdate.Statistics currentStats = new StepUpdate.Statistics();
+
+    /**
+     * 初始化步骤记录
+     */
+    protected void initTeaching(List&lt;T&gt; data) {
+<span class="fc" id="L31">        steps.clear();</span>
+<span class="fc" id="L32">        comparisons = 0;</span>
+<span class="fc" id="L33">        swaps = 0;</span>
+<span class="fc" id="L34">        startTime = System.currentTimeMillis();</span>
+<span class="fc" id="L35">        currentStats = new StepUpdate.Statistics();</span>
+
+        // 记录初始状态
+<span class="fc" id="L38">        addStep(data, new Highlight(), &quot;算法开始&quot;);</span>
+<span class="fc" id="L39">    }</span>
+
+    /**
+     * 添加一个步骤
+     */
+    protected void addStep(List&lt;T&gt; data, Highlight highlight, String description) {
+<span class="fc" id="L45">        StepUpdate step = new StepUpdate();</span>
+<span class="fc" id="L46">        step.setStep(steps.size() + 1);</span>
+<span class="fc" id="L47">        step.setTotalSteps(0); // 将在完成时设置</span>
+<span class="fc" id="L48">        step.setData(new ArrayList&lt;&gt;(data));</span>
+<span class="fc" id="L49">        step.setHighlight(highlight);</span>
+
+<span class="fc" id="L51">        currentStats.setComparisons(comparisons);</span>
+<span class="fc" id="L52">        currentStats.setSwaps(swaps);</span>
+<span class="fc" id="L53">        currentStats.setTime(System.currentTimeMillis() - startTime);</span>
+<span class="fc" id="L54">        step.setStats(currentStats);</span>
+
+<span class="fc" id="L56">        step.setDescription(description);</span>
+
+<span class="fc" id="L58">        steps.add(step);</span>
+<span class="fc" id="L59">    }</span>
+
+    /**
+     * 记录比较操作
+     */
+    protected void recordComparison() {
+<span class="fc" id="L65">        comparisons++;</span>
+<span class="fc" id="L66">    }</span>
+
+    /**
+     * 记录交换操作
+     */
+    protected void recordSwap() {
+<span class="fc" id="L72">        swaps++;</span>
+<span class="fc" id="L73">    }</span>
+
+    /**
+     * 交换列表中的两个元素
+     */
+    protected void swap(List&lt;T&gt; list, int i, int j) {
+<span class="fc" id="L79">        T temp = list.get(i);</span>
+<span class="fc" id="L80">        list.set(i, list.get(j));</span>
+<span class="fc" id="L81">        list.set(j, temp);</span>
+<span class="fc" id="L82">        recordSwap();</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * 比较两个元素
+     */
+    protected int compare(Comparator&lt;T&gt; comparator, T a, T b) {
+<span class="fc" id="L89">        recordComparison();</span>
+<span class="fc" id="L90">        return comparator.compare(a, b);</span>
+    }
+
+    /**
+     * 完成教学步骤记录
+     */
+    protected TeachingResult&lt;T&gt; completeTeaching(List&lt;T&gt; sortedData, int totalSteps) {
+        // 更新所有步骤的总步数
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        for (StepUpdate step : steps) {</span>
+<span class="fc" id="L99">            step.setTotalSteps(totalSteps);</span>
+<span class="fc" id="L100">        }</span>
+
+        // 添加最终步骤
+<span class="fc" id="L103">        Highlight highlight = new Highlight();</span>
+<span class="fc" id="L104">        List&lt;Integer&gt; sortedIndices = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        for (int i = 0; i &lt; sortedData.size(); i++) {</span>
+<span class="fc" id="L106">            sortedIndices.add(i);</span>
+        }
+<span class="fc" id="L108">        highlight.setSorted(sortedIndices);</span>
+
+<span class="fc" id="L110">        addStep(sortedData, highlight, &quot;排序完成&quot;);</span>
+
+<span class="fc" id="L112">        TeachingResult&lt;T&gt; result = new TeachingResult&lt;&gt;();</span>
+<span class="fc" id="L113">        result.setSteps(steps);</span>
+<span class="fc" id="L114">        result.setSortedData(sortedData);</span>
+<span class="fc" id="L115">        result.setTotalComparisons(comparisons);</span>
+<span class="fc" id="L116">        result.setTotalSwaps(swaps);</span>
+<span class="fc" id="L117">        result.setTotalTime(System.currentTimeMillis() - startTime);</span>
+
+<span class="fc" id="L119">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

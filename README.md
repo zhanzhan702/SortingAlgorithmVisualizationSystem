@@ -316,15 +316,17 @@ MIT
 ### 运行测试
 
 ```bash
-# 鉴权相关单元测试（JWT + 两个拦截器，20 个用例，不依赖数据库）
-mvn test -Dtest=JwtUtilTest,AuthInterceptorTest,RoleInterceptorTest
+# 全量单元测试（15 个测试类、278 个用例）+ 生成 JaCoCo 覆盖率报告
+mvn test
 
-# 异常处理与参数校验（W2/W3，45 个用例，不依赖数据库）
-mvn test -Dtest=DataValidatorTest,GlobalExceptionHandlerTest,UserServiceTest,WebSocketControllerAuthTest
+# 只跑某一类，例如排序算法
+mvn test -Dtest=SortingAlgorithmTest
 ```
 
-> 全部测试类都不需要启动 Spring 容器或连接 MySQL；`SortVisualizationApplication` 的 `contextLoads`
-> 才是需要数据库的集成测试，跑全量 `mvn test` 前请先配置好 `spring.datasource.password`。
+- 覆盖率报告：`target/site/jacoco/index.html`（行 97.1% / 分支 88.2%，统计口径见
+  [`docs/W6-覆盖率报告/README.md`](docs/W6-覆盖率报告/README.md)）
+- 归档报告：[`docs/W6-覆盖率报告/`](docs/W6-覆盖率报告/) 内含 JaCoCo 逐行报告与 15 个测试类的 surefire 结果，可直接打开
+- 全部测试都是纯单元测试：**不需要启动 Spring 容器，也不需要连接 MySQL**
 
 ### 鉴权实现位置
 

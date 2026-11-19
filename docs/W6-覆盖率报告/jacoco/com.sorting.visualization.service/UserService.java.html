@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.sorting.visualization.entity.User;
+import com.sorting.visualization.exception.ApiException;
+import com.sorting.visualization.exception.ErrorCode;
+import com.sorting.visualization.mapper.UserMapper;
+import com.sorting.visualization.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="fc" id="L17">@Slf4j</span>
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+
+    /** 注册（W3：空值校验 + 失败语义化，不再返回 200 + success:false） */
+    public Map&lt;String, Object&gt; register(String username, String password, String role) {
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">        String name = username == null ? null : username.trim();</span>
+<span class="pc bpc" id="L28" title="2 of 4 branches missed.">        if (name == null || name.isEmpty()) {</span>
+<span class="nc" id="L29">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;用户名不能为空&quot;);</span>
+        }
+<span class="pc bpc" id="L31" title="2 of 4 branches missed.">        if (password == null || password.isEmpty()) {</span>
+<span class="nc" id="L32">            throw new ApiException(ErrorCode.VALIDATION_ERROR, &quot;密码不能为空&quot;);</span>
+        }
+
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (userMapper.selectOne(new LambdaQueryWrapper&lt;User&gt;().eq(User::getUsername, name)) != null) {</span>
+<span class="fc" id="L36">            throw new ApiException(ErrorCode.USERNAME_EXISTS);</span>
+        }
+
+<span class="fc" id="L39">        User user = new User();</span>
+<span class="fc" id="L40">        user.setUsername(name);</span>
+<span class="fc" id="L41">        user.setPasswordHash(password);</span>
+        // 注册入口只允许 student / teacher，避免客户端自己填 admin 提权
+<span class="fc" id="L43">        user.setRole(normalizeRegisterRole(role));</span>
+
+        try {
+<span class="fc" id="L46">            userMapper.insert(user);</span>
+<span class="nc" id="L47">        } catch (DuplicateKeyException e) {</span>
+            // 并发注册时唯一索引兜底：先查后插之间存在竞态
+<span class="nc" id="L49">            throw new ApiException(ErrorCode.USERNAME_EXISTS, &quot;用户名已存在&quot;, null, e);</span>
+<span class="fc" id="L50">        }</span>
+
+<span class="fc" id="L52">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L53">        result.put(&quot;success&quot;, true);</span>
+<span class="fc" id="L54">        result.put(&quot;message&quot;, &quot;注册成功&quot;);</span>
+<span class="fc" id="L55">        result.put(&quot;userId&quot;, user.getUserId());</span>
+<span class="fc" id="L56">        return result;</span>
+    }
+
+    /** 注册时的角色白名单：只认 teacher，其余一律 student */
+    static String normalizeRegisterRole(String role) {
+<span class="fc bfc" id="L61" title="All 4 branches covered.">        return &quot;teacher&quot;.equalsIgnoreCase(role == null ? &quot;&quot; : role.trim()) ? &quot;teacher&quot; : &quot;student&quot;;</span>
+    }
+
+    /** 登录：校验通过后签发 JWT（HS256）；凭证错误返回 401 */
+    public Map&lt;String, Object&gt; login(String username, String password) {
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        String name = username == null ? null : username.trim();</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        User user = name == null ? null</span>
+<span class="fc" id="L68">                : userMapper.selectOne(new LambdaQueryWrapper&lt;User&gt;().eq(User::getUsername, name));</span>
+
+<span class="pc bpc" id="L70" title="2 of 6 branches missed.">        if (user == null || user.getPasswordHash() == null</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                || password == null || !user.getPasswordHash().equals(password)) {</span>
+<span class="fc" id="L72">            throw new ApiException(ErrorCode.INVALID_CREDENTIALS);</span>
+        }
+
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        String role = user.getRole() == null ? &quot;student&quot; : user.getRole();</span>
+<span class="fc" id="L76">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L77">        result.put(&quot;success&quot;, true);</span>
+<span class="fc" id="L78">        result.put(&quot;token&quot;, jwtUtil.generateToken(user.getUserId(), user.getUsername(), role));</span>
+<span class="fc" id="L79">        result.put(&quot;expiresIn&quot;, jwtUtil.getExpirationMillis() / 1000);</span>
+<span class="fc" id="L80">        result.put(&quot;userId&quot;, user.getUserId());</span>
+<span class="fc" id="L81">        result.put(&quot;username&quot;, user.getUsername());</span>
+<span class="fc" id="L82">        result.put(&quot;role&quot;, role);</span>
+<span class="fc" id="L83">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

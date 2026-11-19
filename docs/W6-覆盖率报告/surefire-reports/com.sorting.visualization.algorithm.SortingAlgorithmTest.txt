@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.sorting.visualization.algorithm.SortingAlgorithmTest
+-------------------------------------------------------------------------------
+Tests run: 111, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.319 s -- in com.sorting.visualization.algorithm.SortingAlgorithmTest

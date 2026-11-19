@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InsertionSort.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm.impl</a> &gt; <span class="el_source">InsertionSort.java</span></div><h1>InsertionSort.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm.impl;
+
+import com.sorting.visualization.algorithm.AbstractSortingAlgorithm;
+import com.sorting.visualization.model.Highlight;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+<span class="fc" id="L11">@Slf4j</span>
+<span class="fc" id="L12">public class InsertionSort&lt;T&gt; extends AbstractSortingAlgorithm&lt;T&gt; {</span>
+
+    @Override
+    public TeachingResult&lt;T&gt; teach(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L16">        initTeaching(data);</span>
+
+<span class="fc" id="L18">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+<span class="fc" id="L19">        int n = workingData.size();</span>
+
+        // 添加初始步骤
+        Highlight highlight;
+
+
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        for (int i = 1; i &lt; n; i++) {</span>
+<span class="fc" id="L26">            T key = workingData.get(i);</span>
+<span class="fc" id="L27">            int j = i - 1;</span>
+
+<span class="fc" id="L29">            highlight = new Highlight();</span>
+<span class="fc" id="L30">            List&lt;Integer&gt; sorted = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">            for (int k = 0; k &lt; i; k++) {</span>
+<span class="fc" id="L32">                sorted.add(k);</span>
+            }
+<span class="fc" id="L34">            highlight.setSorted(sorted);</span>
+<span class="fc" id="L35">            highlight.setCompare(List.of(i));</span>
+
+<span class="fc" id="L37">            addStep(workingData, highlight,</span>
+<span class="fc" id="L38">                    String.format(&quot;处理第%d个元素[%s]，将其插入到已排序序列中&quot;, i + 1, key));</span>
+
+            // 向后移动元素，为key找到合适位置
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            while (j &gt;= 0) {</span>
+<span class="fc" id="L42">                highlight = new Highlight();</span>
+<span class="fc" id="L43">                highlight.setCompare(List.of(j, i));</span>
+<span class="fc" id="L44">                highlight.setSorted(sorted);</span>
+
+<span class="fc" id="L46">                addStep(workingData, highlight,</span>
+<span class="fc" id="L47">                        String.format(&quot;比较当前元素[%s]和第%d个元素[%s]&quot;,</span>
+<span class="fc" id="L48">                                key, j + 1, workingData.get(j)));</span>
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">                if (compare(comparator, workingData.get(j), key) &gt; 0) {</span>
+<span class="fc" id="L51">                    workingData.set(j + 1, workingData.get(j));</span>
+<span class="fc" id="L52">                    recordSwap();</span>
+
+<span class="fc" id="L54">                    highlight = new Highlight();</span>
+<span class="fc" id="L55">                    highlight.setSwap(List.of(j, j + 1));</span>
+<span class="fc" id="L56">                    highlight.setSorted(sorted);</span>
+
+<span class="fc" id="L58">                    addStep(workingData, highlight,</span>
+<span class="fc" id="L59">                            String.format(&quot;将第%d个元素向右移动&quot;, j + 1));</span>
+
+<span class="fc" id="L61">                    j--;</span>
+                } else {
+                    break;
+                }
+            }
+
+<span class="fc" id="L67">            workingData.set(j + 1, key);</span>
+<span class="fc" id="L68">            recordSwap();</span>
+
+<span class="fc" id="L70">            highlight = new Highlight();</span>
+<span class="fc" id="L71">            highlight.setSorted(sorted);</span>
+<span class="fc" id="L72">            highlight.setSwap(List.of(j + 1));</span>
+
+<span class="fc" id="L74">            addStep(workingData, highlight,</span>
+<span class="fc" id="L75">                    String.format(&quot;将元素[%s]插入到第%d个位置&quot;, key, j + 2));</span>
+        }
+
+<span class="fc" id="L78">        return completeTeaching(workingData, steps.size() + 1);</span>
+    }
+
+    @Override
+    public PerformanceResult&lt;T&gt; perform(List&lt;T&gt; data, Comparator&lt;T&gt; comparator) {
+<span class="fc" id="L83">        List&lt;T&gt; workingData = new ArrayList&lt;&gt;(data);</span>
+<span class="fc" id="L84">        int n = workingData.size();</span>
+<span class="fc" id="L85">        comparisons = 0;</span>
+<span class="fc" id="L86">        swaps = 0;</span>
+<span class="fc" id="L87">        startTime = System.nanoTime();</span>
+
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        for (int i = 1; i &lt; n; i++) {</span>
+<span class="fc" id="L90">            T key = workingData.get(i);</span>
+<span class="fc" id="L91">            int j = i - 1;</span>
+
+<span class="fc bfc" id="L93" title="All 2 branches covered.">            while (j &gt;= 0) {</span>
+<span class="fc" id="L94">                comparisons++;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">                if (comparator.compare(workingData.get(j), key) &gt; 0) {</span>
+<span class="fc" id="L96">                    workingData.set(j + 1, workingData.get(j));</span>
+<span class="fc" id="L97">                    swaps++;</span>
+<span class="fc" id="L98">                    j--;</span>
+                } else {
+                    break;
+                }
+            }
+<span class="fc" id="L103">            workingData.set(j + 1, key);</span>
+        }
+
+<span class="fc" id="L106">        long time = (System.nanoTime() - startTime)/1000;</span>
+
+<span class="fc" id="L108">        PerformanceResult&lt;T&gt; result = new PerformanceResult&lt;&gt;();</span>
+<span class="fc" id="L109">        result.setSortedData(workingData);</span>
+<span class="fc" id="L110">        result.setComparisons(comparisons);</span>
+<span class="fc" id="L111">        result.setSwaps(swaps);</span>
+<span class="fc" id="L112">        result.setTime(time);</span>
+
+<span class="fc" id="L114">        return result;</span>
+    }
+
+    @Override
+    public String getAlgorithmName() {
+<span class="fc" id="L119">        return &quot;直接插入排序&quot;;</span>
+    }
+
+    @Override
+    public String getTimeComplexity() {
+<span class="fc" id="L124">        return &quot;O(n²)&quot;;</span>
+    }
+
+    @Override
+    public String getSpaceComplexity() {
+<span class="fc" id="L129">        return &quot;O(1)&quot;;</span>
+    }
+
+    @Override
+    public boolean isStable() {
+<span class="fc" id="L134">        return true;</span>
+    }
+
+    @Override
+    public boolean supportsDataType(Class&lt;?&gt; dataType) {
+<span class="fc" id="L139">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

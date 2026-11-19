@@ -31,8 +31,9 @@ com.sorting.visualization.util.PseudoCodeUtilTest             8 个
 --------------------------------------------------
 指令覆盖 96.6%  |  行覆盖 97.1%  |  分支覆盖 88.2%  |  方法覆盖 99.3%
 
-报告位置：
-  · 02_覆盖率报告/index.html           （JaCoCo 原始报告，逐行标绿/红）
-  · 02_覆盖率报告/覆盖率汇总.html     （一页纸汇总，可直接截图/打印）
-  · 03_测试结果/surefire-reports/     （每个测试类的原始结果）
+报告位置（均已随仓库提交，点开即可看）：
+  · jacoco/index.html                 （JaCoCo 原始报告，逐行标绿/红）
+  · 覆盖率汇总.html                   （一页纸汇总，可直接截图/打印）
+  · surefire-reports/                 （15 个测试类的原始结果与耗时）
+  · 本地复跑：mvn test 后看 target/site/jacoco/index.html
 

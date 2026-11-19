@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlgorithmConstants.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">sorting-visualization-backend</a> &gt; <a href="index.source.html" class="el_package">com.sorting.visualization.algorithm</a> &gt; <span class="el_source">AlgorithmConstants.java</span></div><h1>AlgorithmConstants.java</h1><pre class="source lang-java linenums">package com.sorting.visualization.algorithm;
+
+import java.util.List;
+
+/**
+ * 算法相关常量，消除多处硬编码
+ */
+public final class AlgorithmConstants {
+
+    private AlgorithmConstants() {}
+
+    /** 所有支持的算法标识 */
+<span class="fc" id="L13">    public static final List&lt;String&gt; ALGORITHM_IDS = List.of(</span>
+            &quot;BUBBLE&quot;, &quot;INSERTION&quot;, &quot;SHELL&quot;, &quot;QUICK&quot;, &quot;HEAP&quot;, &quot;MERGE&quot;
+    );
+
+    /** 算法中文名称映射 */
+    public static String getChineseName(String algorithm) {
+<span class="fc bfc" id="L19" title="All 7 branches covered.">        return switch (algorithm.toUpperCase()) {</span>
+<span class="fc" id="L20">            case &quot;BUBBLE&quot; -&gt; &quot;冒泡排序&quot;;</span>
+<span class="fc" id="L21">            case &quot;INSERTION&quot; -&gt; &quot;直接插入排序&quot;;</span>
+<span class="fc" id="L22">            case &quot;SHELL&quot; -&gt; &quot;希尔排序&quot;;</span>
+<span class="fc" id="L23">            case &quot;QUICK&quot; -&gt; &quot;快速排序&quot;;</span>
+<span class="fc" id="L24">            case &quot;HEAP&quot; -&gt; &quot;堆排序&quot;;</span>
+<span class="fc" id="L25">            case &quot;MERGE&quot; -&gt; &quot;归并排序&quot;;</span>
+<span class="fc" id="L26">            default -&gt; &quot;未知算法&quot;;</span>
+        };
+    }
+
+    /** 算法时间复杂度 */
+    public static String getComplexity(String algorithm) {
+<span class="fc bfc" id="L32" title="All 4 branches covered.">        return switch (algorithm.toUpperCase()) {</span>
+<span class="fc" id="L33">            case &quot;BUBBLE&quot;, &quot;INSERTION&quot; -&gt; &quot;O(n²)&quot;;</span>
+<span class="fc" id="L34">            case &quot;SHELL&quot;, &quot;HEAP&quot;, &quot;MERGE&quot; -&gt; &quot;O(n log n)&quot;;</span>
+<span class="fc" id="L35">            case &quot;QUICK&quot; -&gt; &quot;O(n log n) - O(n²)&quot;;</span>
+<span class="fc" id="L36">            default -&gt; &quot;未知&quot;;</span>
+        };
+    }
+
+    /** 算法稳定性类型 */
+    public static String getStabilityType(String algorithm) {
+<span class="fc bfc" id="L42" title="All 3 branches covered.">        return switch (algorithm.toUpperCase()) {</span>
+<span class="fc" id="L43">            case &quot;BUBBLE&quot;, &quot;INSERTION&quot;, &quot;MERGE&quot; -&gt; &quot;stable&quot;;</span>
+<span class="fc" id="L44">            case &quot;SHELL&quot;, &quot;QUICK&quot;, &quot;HEAP&quot; -&gt; &quot;unstable&quot;;</span>
+<span class="fc" id="L45">            default -&gt; &quot;unknown&quot;;</span>
+        };
+    }
+
+    /** 判断是否为合法算法 */
+    public static boolean isValidAlgorithm(String algorithm) {
+<span class="fc bfc" id="L51" title="All 4 branches covered.">        return algorithm != null &amp;&amp; ALGORITHM_IDS.contains(algorithm.toUpperCase());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
