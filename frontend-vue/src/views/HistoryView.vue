@@ -201,14 +201,14 @@ const onShowAllChange = () => {
   else fetchPerfBatches()
 }
 
-const fetchAllExperiments = async () => {
+const fetchAllExperiments = async (page = 1) => {
   loading.value = true
   try {
-    const res = await apiFetch('/api/page/experiments?userId=all&page=1&size=20')
+    const res = await apiFetch(`/api/page/experiments?userId=all&page=${page}&size=${historyStore.pageSize}`)
     const data = await res.json()
     historyStore.experiments = data.records || []
     historyStore.total = data.total || 0
-    historyStore.page = 1
+    historyStore.page = data.page || page
   } catch(e) { console.error(e) }
   loading.value = false
 }
@@ -225,11 +225,11 @@ const switchTab = (tab) => {
 }
 
 const prevPage = () => {
-  if (showAll.value) return
+  if (showAll.value) { fetchAllExperiments(historyStore.page - 1); return }
   historyStore.fetchExperiments(authStore.userId, historyStore.page - 1)
 }
 const nextPage = () => {
-  if (showAll.value) return
+  if (showAll.value) { fetchAllExperiments(historyStore.page + 1); return }
   historyStore.fetchExperiments(authStore.userId, historyStore.page + 1)
 }
 
